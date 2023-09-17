@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15.4
+    environment:
+      POSTGRES_DB: legends_db
+      POSTGRES_USER: usrlegends
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      - ./db-data:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
