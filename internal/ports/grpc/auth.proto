@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./";
+
+service Auth {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+}
+
+message RegisterRequest {
+    string name = 1;
+    string group = 2;
+    string email = 3;
+    string password = 4;
+    string telegram = 5;
+    string vk = 6;
+    string clientBrowser = 7;
+    string clientOS = 8;
+}
+
+message RegisterResponse {
+    string message = 1;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+    string clientBrowser = 3;
+    string clientOS = 4;
+}
+
+message LoginResponse {
+    string accessToken = 1;
+}
+
+message LogoutRequest {
+    string accessToken = 1;
+}
+
+message LogoutResponse {
+    string message = 1;
+}
