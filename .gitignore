@@ -15,6 +15,8 @@
 *.out
 
 /db-data
+.DS_Store
+*.env
 
 # Go workspace file
 go.work
