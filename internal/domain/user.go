@@ -5,6 +5,7 @@ package domain
 // Таблица пользователей
 type User struct {
 	ID             ID     `db:"id"`
+	Password       string `db:"password"`
 	PhoneNumber    string `db:"phone_number"`
 	Email          string `db:"email"`
 	EmailConfirmed bool   `db:"email_confirmed"`
