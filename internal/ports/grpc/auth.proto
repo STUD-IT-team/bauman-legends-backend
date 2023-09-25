@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./";
-option go_package = "./internal/ports/grpc";
 option go_package = "./internal/ports/grpc";
 
 service Auth {
