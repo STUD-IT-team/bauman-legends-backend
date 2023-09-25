@@ -10,6 +10,7 @@ service Auth {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
     rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+    rpc Check(CheckRequest) returns (CheckResponse) {}
 }
 
 message RegisterRequest {
@@ -44,4 +45,12 @@ message LogoutRequest {
 
 message LogoutResponse {
     string message = 1;
+}
+
+message CheckRequest {
+    string accessToken = 1;
+}
+
+message CheckResponse {
+    bool valid = 1;
 }
