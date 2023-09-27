@@ -15,7 +15,6 @@ type Session struct {
 	ClientIP      string
 	ClientBrowser string
 	ClientOS      string
-	ClientGeo     string
 }
 
 // NewSessionCache

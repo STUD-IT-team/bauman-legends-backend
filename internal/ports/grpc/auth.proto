@@ -18,19 +18,22 @@ message RegisterRequest {
     string password = 4;
     string telegram = 5;
     string vk = 6;
-    string clientBrowser = 7;
-    string clientOS = 8;
+    string phoneNumber = 7;
+    string clientIP = 8;
+    string clientBrowser = 9;
+    string clientOS = 10;
 }
 
 message RegisterResponse {
-    string message = 1;
+    string accessToken = 1;
 }
 
 message LoginRequest {
     string email = 1;
     string password = 2;
-    string clientBrowser = 3;
-    string clientOS = 4;
+    string clientIP = 3;
+    string clientBrowser = 4;
+    string clientOS = 5;
 }
 
 message LoginResponse {

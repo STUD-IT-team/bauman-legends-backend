@@ -1,61 +1,50 @@
-package app
+package main
 
 import (
-	"context"
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
+	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/session"
-	"time"
-
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
+	log "github.com/sirupsen/logrus"
+	"net"
+	"os"
 )
 
-type Auth struct {
-	SessionCache cache.ICache[string, session.Session]
-	Repository   repository.IRepository
-}
+func main() {
+	logSetup()
 
-func (s *Auth) Register(ctx context.Context, req *grpc.RegisterRequest) (*grpc.RegisterResponse, error) {
-	// TODO:
-	// 	После редактирования базы и репозитория - дописать
-	return nil, nil
-}
+	sessionCache := session.NewSessionCache()
+	repo := repository.NewRepository(os.Getenv("DATA_SOURCE"))
+	service := grpc.NewAuth(sessionCache, repo)
 
-func (s *Auth) Login(ctx context.Context, req *grpc.LoginRequest) (*grpc.LoginResponse, error) {
-	// TODO:
-	// 	После редактирования базы и репозитория - дописать
-	return nil, nil
-}
-
-func (s *Auth) Logout(ctx context.Context, req *grpc.LogoutRequest) (*grpc.LogoutResponse, error) {
-	accessToken := req.GetAccessToken()
-	s.SessionCache.Delete(accessToken)
-
-	return &grpc.LogoutResponse{
-		Message: "success",
-	}, nil
-}
-
-func (s *Auth) Check(ctx context.Context, req *grpc.CheckRequest) (*grpc.CheckResponse, error) {
-	//select {
-	//case <-ctx.Done():
-	//	return nil, nil
-	//}
-
-	// TODO:
-	// 	Как использовать контекст?
-
-	accessToken := req.GetAccessToken()
-	record := s.SessionCache.Find(accessToken)
-
-	if record == nil ||
-		record.ExpireAt.Before(time.Now()) {
-		return &grpc.CheckResponse{
-			Valid: false,
-		}, nil
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", os.Getenv("PORT")))
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить tcp-соединение: %s", err.Error())
 	}
 
-	return &grpc.CheckResponse{
-		Valid: true,
-	}, nil
+	grpcServer := grpc.NewServer()
+	grpc.RegisterAuthServer(grpcServer, service)
+
+	log.WithField("origin.function", "main").Info("Сервер запущен")
+
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Сервер остановлен: %s", err.Error())
+	}
+
+	log.WithField(
+		"origin.function", "main",
+	).Info("Сервер завершил работу")
+}
+
+func logSetup() {
+	formatter := new(log.TextFormatter)
+	formatter.TimestampFormat = "02.01.2006 15:04:05"
+	formatter.FullTimestamp = true
+	formatter.DisableLevelTruncation = true
+	log.SetFormatter(formatter)
 }

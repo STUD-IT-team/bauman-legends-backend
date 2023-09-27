@@ -1,26 +1,20 @@
 package repository
 
 import (
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	_ "github.com/jackc/pgx"
 	"github.com/jmoiron/sqlx"
 )
 
 type IRepository interface {
-	CreateUser(user domain.User) (userID string)
-	// TODO
-	// 	GetUser(id)
+	CreateUser(user request.Register) (userID string, err error)
+	GetUserPassword(email string) (password string, err error)
+	GetUserID(email string) (userID string, err error)
+	CheckUser(email string) (exists bool, err error)
 }
 
 type Repository struct {
 	db *sqlx.DB
-}
-
-func (r *Repository) CreateUser(userID domain.User) string {
-	// TODO
-	// 	 Написать запрос добавления пользователя с возвращением его id,
-	//	 отредактировать тип первичного ключа в sql файле
-	return ""
 }
 
 func NewRepository(dataSource string) IRepository {

@@ -9,6 +9,7 @@ type Register struct {
 	Password      string
 	Telegram      string
 	VK            string
+	PhoneNumber   string
 	ClientBrowser string
 	ClientOS      string
 }
