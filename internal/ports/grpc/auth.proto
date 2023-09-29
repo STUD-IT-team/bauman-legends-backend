@@ -19,34 +19,32 @@ message RegisterRequest {
     string telegram = 5;
     string vk = 6;
     string phoneNumber = 7;
-    string clientIP = 8;
-    string clientBrowser = 9;
-    string clientOS = 10;
+    string clientBrowser = 8;
+    string clientOS = 9;
 }
 
 message RegisterResponse {
     string accessToken = 1;
+    string expires = 2;
 }
 
 message LoginRequest {
     string email = 1;
     string password = 2;
-    string clientIP = 3;
-    string clientBrowser = 4;
-    string clientOS = 5;
+    string clientBrowser = 3;
+    string clientOS = 4;
 }
 
 message LoginResponse {
     string accessToken = 1;
+    string expires = 2;
 }
 
 message LogoutRequest {
     string accessToken = 1;
 }
 
-message LogoutResponse {
-    string message = 1;
-}
+message LogoutResponse {}
 
 message CheckRequest {
     string accessToken = 1;

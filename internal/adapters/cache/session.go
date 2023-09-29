@@ -1,7 +1,7 @@
-package session
+package cache
 
 import (
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
+	"github.com/STUD-IT-team/bauman-legends-backend/pkg/cache"
 	"time"
 )
 
