@@ -7,17 +7,13 @@ drop table if exists "team_task";
 drop table if exists "team_secret";
 drop table if exists "team";
 drop table if exists "role";
-drop table if exists "user";
 drop table if exists "answer";
 drop table if exists "task";
 drop table if exists "task_type";
 drop table if exists "task_difficulty";
-drop table if exists "team_task";
 drop table if exists "answer_secret";
 drop table if exists "answer_type";
-drop table if exists "answer";
 drop table if exists "secret";
-drop table if exists "team_secret";
 
 create table "team" (
 	id		uuid	not null	default uuid_generate_v4(),
