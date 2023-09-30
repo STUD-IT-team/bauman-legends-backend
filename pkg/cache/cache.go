@@ -24,6 +24,15 @@ type Cache[K comparable, V any] struct {
 	value map[K]V
 }
 
+// NewCache
+//
+// Инициализация объекта кэша
+func NewCache[K comparable, V any]() *Cache[K, V] {
+	return &Cache[K, V]{
+		value: make(map[K]V),
+	}
+}
+
 // Put
 //
 // Создание новой (или изменение существующей) записи по ключу

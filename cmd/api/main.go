@@ -45,6 +45,8 @@ func main() {
 	r.Post("/user", api.Register)
 	r.Post("/user/auth", api.Login)
 	r.Delete("/user/session", api.Logout)
+	r.Get("/user", api.GetProfile)
+	r.Put("/user", api.ChangeProfile)
 
 	log.WithField(
 		"origin.function", "main",

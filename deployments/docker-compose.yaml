@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   database:
-    container_name: "bl-database"
+    container_name: "${DB_DN}"
     image: postgres:15.4
     env_file:
       - ./db.env
@@ -26,6 +26,8 @@ services:
 
   auth:
     container_name: "${AUTH_DN}"
+    depends_on:
+      - database
     build:
       context: ../
       dockerfile: cmd/auth/Dockerfile

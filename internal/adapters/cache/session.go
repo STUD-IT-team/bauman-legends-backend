@@ -21,5 +21,5 @@ type Session struct {
 //
 // Создание нового объекта кэша сессий
 func NewSessionCache() cache.ICache[string, Session] {
-	return &cache.Cache[string, Session]{}
+	return cache.NewCache[string, Session]()
 }

@@ -7,8 +7,10 @@ option go_package = "./internal/ports/grpc";
 service Auth {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
-    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+    rpc Logout(LogoutRequest) returns (EmptyResponse) {}
     rpc Check(CheckRequest) returns (CheckResponse) {}
+    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
+    rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
 }
 
 message RegisterRequest {
@@ -44,7 +46,7 @@ message LogoutRequest {
     string accessToken = 1;
 }
 
-message LogoutResponse {}
+message EmptyResponse {}
 
 message CheckRequest {
     string accessToken = 1;
@@ -52,4 +54,28 @@ message CheckRequest {
 
 message CheckResponse {
     bool valid = 1;
+}
+
+message GetProfileRequest {
+    string accessToken = 1;
+}
+
+message GetProfileResponse {
+    string name = 1;
+    string group = 2;
+    string email = 3;
+    string telegram = 4;
+    string vk = 5;
+    string phoneNumber = 6;
+}
+
+message ChangeProfileRequest {
+    string accessToken = 1;
+    string name = 2;
+    string group = 3;
+    string password = 4;
+    string email = 5;
+    string telegram = 6;
+    string vk = 7;
+    string phoneNumber = 8;
 }

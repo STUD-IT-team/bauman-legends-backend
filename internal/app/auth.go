@@ -32,7 +32,7 @@ func NewAuth(sc cache.ICache[string, cache2.Session], r repository.IUserAuthStor
 
 func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.RegisterResponse, error) {
 	mappedReq := mapper.MakeRequestRegister(req)
-	exists, err := s.Repository.CheckUser(req.Email)
+	exists, err := s.Repository.CheckUser(mappedReq.Email)
 	if err != nil {
 		log.WithField(
 			"origin.function", "Register",
@@ -43,7 +43,7 @@ func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.R
 	if exists {
 		log.WithField(
 			"origin.function", "Register",
-		).Warnf("Пользователь с логином %s уже существует", req.Email)
+		).Warnf("Пользователь с логином %s уже существует", mappedReq.Email)
 		return nil, errors.New("user exists")
 	}
 
@@ -81,7 +81,7 @@ func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.R
 
 	log.WithField(
 		"origin.function", "Register",
-	).Infof("Пользователь %s зарегистрирован", req.Email)
+	).Infof("Пользователь %s зарегистрирован", mappedReq.Email)
 
 	return &grpc2.RegisterResponse{
 		AccessToken: sessionID,
@@ -154,11 +154,11 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 	}, nil
 }
 
-func (s *Auth) Logout(_ context.Context, req *grpc2.LogoutRequest) (*grpc2.LogoutResponse, error) {
+func (s *Auth) Logout(_ context.Context, req *grpc2.LogoutRequest) (*grpc2.EmptyResponse, error) {
 	accessToken := req.GetAccessToken()
 	s.SessionCache.Delete(accessToken)
 
-	return &grpc2.LogoutResponse{}, nil
+	return &grpc2.EmptyResponse{}, nil
 }
 
 func (s *Auth) Check(_ context.Context, req *grpc2.CheckRequest) (*grpc2.CheckResponse, error) {
@@ -175,4 +175,59 @@ func (s *Auth) Check(_ context.Context, req *grpc2.CheckRequest) (*grpc2.CheckRe
 	return &grpc2.CheckResponse{
 		Valid: true,
 	}, nil
+}
+
+func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grpc2.GetProfileResponse, error) {
+	accessToken := req.GetAccessToken()
+	session := s.SessionCache.Find(accessToken)
+
+	if session == nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf("Сессия %s не найдена", req.AccessToken)
+		return nil, errors.New("session not found")
+	}
+
+	profile, err := s.Repository.GetUserProfile(session.UserID)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf("Ошибка при получении профиля пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	return mapper.MakeGrpcResponseProfile(profile), nil
+}
+
+func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest) (*grpc2.EmptyResponse, error) {
+	accessToken := req.GetAccessToken()
+	session := s.SessionCache.Find(accessToken)
+
+	if session == nil {
+		log.WithField(
+			"origin.function", "ChangeProfile",
+		).Errorf("Сессия %s не найдена", req.AccessToken)
+		return nil, errors.New("session not found")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeProfile",
+		).Errorf("Не удалось создать хэш пароля пользователя: %s", err.Error())
+		return nil, err
+	}
+	req.Password = string(hash)
+
+	err = s.Repository.ChangeUserProfile(session.UserID, mapper.MakeChangeProfileRequest(req))
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeProfile",
+		).Errorf("Ошибка при изменении профиля пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	return &grpc2.EmptyResponse{}, nil
 }

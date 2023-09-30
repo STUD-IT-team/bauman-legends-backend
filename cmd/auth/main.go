@@ -17,7 +17,16 @@ func main() {
 	settings.LogSetup()
 
 	sessionCache := cache.NewSessionCache()
-	repo := postgres.NewUserAuthStorage(os.Getenv("DATA_SOURCE"))
+	repo, err := postgres.NewUserAuthStorage(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
 	service := app.NewAuth(sessionCache, repo)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", os.Getenv("AUTH_DN"), os.Getenv("AUTH_PORT")))

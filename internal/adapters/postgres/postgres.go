@@ -3,6 +3,8 @@ package postgres
 import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )
@@ -11,14 +13,14 @@ type UserAuthStorage struct {
 	db *sqlx.DB
 }
 
-func NewUserAuthStorage(dataSource string) repository.IUserAuthStorage {
+func NewUserAuthStorage(dataSource string) (repository.IUserAuthStorage, error) {
 	db, err := sqlx.Open("pgx", dataSource)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	return &UserAuthStorage{
 		db: db,
-	}
+	}, err
 }
 
 func (r *UserAuthStorage) CreateUser(user request.Register) (userID string, err error) {
@@ -34,7 +36,7 @@ func (r *UserAuthStorage) CreateUser(user request.Register) (userID string, err 
                               $1, $2, $3, $4, $5, $6, $7
                     ) returning id;
 `
-	err = r.db.Select(&userID, query,
+	err = r.db.Get(&userID, query,
 		user.Password,
 		user.PhoneNumber,
 		user.Email,
@@ -55,7 +57,7 @@ func (r *UserAuthStorage) CreateUser(user request.Register) (userID string, err 
 func (r *UserAuthStorage) GetUserPassword(email string) (password string, err error) {
 	query := `select password from "user" where email = $1;`
 
-	err = r.db.Select(&password, query, email)
+	err = r.db.Get(&password, query, email)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetUserPassword",
@@ -69,7 +71,7 @@ func (r *UserAuthStorage) GetUserPassword(email string) (password string, err er
 func (r *UserAuthStorage) GetUserID(email string) (userID string, err error) {
 	query := `select id from "user" where email = $1;`
 
-	err = r.db.Select(&userID, query, email)
+	err = r.db.Get(&userID, query, email)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetUserID",
@@ -83,7 +85,7 @@ func (r *UserAuthStorage) GetUserID(email string) (userID string, err error) {
 func (r *UserAuthStorage) CheckUser(email string) (exists bool, err error) {
 	query := `select exists (select 1 from "user" where email = $1)`
 
-	err = r.db.Select(&exists, query, email)
+	err = r.db.Get(&exists, query, email)
 	if err != nil {
 		log.WithField(
 			"origin.function", "CheckUser",
@@ -92,4 +94,61 @@ func (r *UserAuthStorage) CheckUser(email string) (exists bool, err error) {
 	}
 
 	return exists, nil
+}
+
+func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, error) {
+	query := `	select 
+					name, 
+					"group", 
+					telegram, 
+					vk, 
+					phone_number, 
+					email 
+				from "user" 
+					where id = $1;
+`
+	var profile response.UserProfile
+	err := r.db.Get(&profile, query, userID)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserProfile",
+		).Errorf("Ошибка при получении данных пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	return &profile, nil
+}
+
+func (r *UserAuthStorage) ChangeUserProfile(userID string, profile *request.ChangeProfile) error {
+	query := `	
+update "user"
+	    set name=$2,
+	        password=$3,
+	        "group"=$4,
+	        telegram=$5,
+	        vk=$6,
+	        phone_number=$7,
+	        email=$8
+	    where id = $1;
+`
+	_, err := r.db.Exec(query,
+		userID,
+		profile.Name,
+		profile.Password,
+		profile.Group,
+		profile.Telegram,
+		profile.VK,
+		profile.PhoneNumber,
+		profile.Email,
+	)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeUserProfile",
+		).Errorf("Ошибка при изменении данных пользователя: %s", err.Error())
+		return err
+	}
+
+	return nil
 }
