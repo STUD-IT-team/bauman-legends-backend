@@ -1,0 +1,6 @@
+package consts
+
+const (
+	LogDateFormat  = "02.01.2006 15:04:05"
+	GrpcTimeFormat = "02.01.2006 15:04:05.000"
+)

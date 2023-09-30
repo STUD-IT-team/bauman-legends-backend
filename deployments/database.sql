@@ -1,125 +1,158 @@
-CREATE TABLE teams (
-	line_num	SERIAL,
-	id		text	NOT NULL	PRIMARY KEY,
-	title		text	NOT NULL
+set search_path = "public";
+
+create extension if not exists "uuid-ossp";
+
+drop table if exists "user";
+drop table if exists "team_task";
+drop table if exists "team_secret";
+drop table if exists "team";
+drop table if exists "role";
+drop table if exists "answer";
+drop table if exists "task";
+drop table if exists "task_type";
+drop table if exists "task_difficulty";
+drop table if exists "answer_secret";
+drop table if exists "answer_type";
+drop table if exists "secret";
+
+create table "team" (
+	id		uuid	not null	default uuid_generate_v4(),
+	title	text	not null,
+
+	primary key (id)
 );
 
-CREATE TABLE roles (
-	line_num	SERIAL,
-	id		INT		NOT NULL	PRIMARY KEY,
-	title		text		NOT NULL
+create table "role" (
+	id		int		generated always as identity,
+	title	text	not null,
+
+	primary key (id)
 );
 
-CREATE TABLE users (
-	line_num	SERIAL,
-	id 		text		NOT NULL	PRIMARY KEY,
-	password 	text		NOT NULL,
-	phone_number	text		NOT NULL,
-	email		text		NOT NULL,
-	email_confirmed	BOOLEAN		DEFAULT FALSE,
-	telegram	text		NOT NULL,
-	vk		text		NOT NULL,
-	study_group	text		NOT NULL,
-	fio		text		NOT NULL,
-	team_id 	text 	    	DEFAULT NULL,
-	FOREIGN KEY (team_id) 
-		REFERENCES teams (id) 
-			ON DELETE SET DEFAULT,
-	role_id		INT		DEFAULT NULL,
-	FOREIGN KEY (role_id) 
-		REFERENCES roles (id) 
-			ON DELETE SET DEFAULT,
-	is_admin	BOOLEAN		DEFAULT FALSE
+create table "user" (
+    id		        uuid	not null	default uuid_generate_v4(),
+	password 	    text    not null,
+	phone_number	text	not null,
+	email		    text	not null,
+	email_confirmed	boolean not null    default false,
+	telegram	    text	not null,
+	vk		        text	not null,
+	"group"	        text	not null,
+	name		    text	not null,
+	team_id 	    uuid 	            default null,
+	role_id		    int		            default null,
+	is_admin	    boolean		        default false,
+
+    primary key (id),
+
+    foreign key (team_id)
+        references "team" (id)
+            on delete set default,
+    foreign key (role_id)
+        references "role" (id)
+            on delete set default
 );
 
-CREATE TABLE types_tasks (
-	line_num	SERIAL,
-	id		INT	NOT NULL	PRIMARY KEY,
-	title		text	NOT NULL
+create table "task_type" (
+	id		int	    generated always as identity,
+	title	text	not null,
+
+	primary key (id)
 );
 
-CREATE TABLE difficulties_tasks (
-	line_num	SERIAL,
-	id		INT		NOT NULL	PRIMARY KEY,
-	title		text		NOT NULL
+create table "task_difficulty" (
+	id		int		generated always as identity,
+	title	text	not null,
+
+	primary key (id)
 );
 
-CREATE TABLE tasks (
-	line_num	SERIAL,
-	id 		text	NOT NULL	PRIMARY KEY,
-	title		text	NOT NULL,
-   	description	text,
-	time_limit	text	NOT NULL,
-	difficulty_id	INT 	DEFAULT NULL,
-	FOREIGN KEY (difficulty_id) 
-		REFERENCES difficulties_tasks (id)
-			ON DELETE SET DEFAULT,
-	type_id		INT	DEFAULT NULL,
-	FOREIGN KEY (type_id) 
-		REFERENCES types_tasks (id)
-			ON DELETE SET DEFAULT
+create table "task" (
+    id		        uuid	    not null	default uuid_generate_v4(),
+	title		    text	    not null,
+   	description	    text,
+	time_limit	    interval    not null,
+	difficulty_id	int 	    not null,
+    type_id		    int	        not null,
+
+    primary key (id),
+
+	foreign key (difficulty_id)
+		references "task_difficulty" (id),
+	foreign key (type_id)
+		references "task_type" (id)
 );
 
-CREATE TABLE team_tasks (
-	line_num        SERIAL,
-	id		text		NOT NULL,
-	task_id		text 		NOT NULL,
-	FOREIGN KEY (task_id) 
-		REFERENCES tasks (id),
-	team_id 	text		NOT NULL,
-	FOREIGN KEY (team_id) 
-		REFERENCES teams (id),
-	start_time	TIMESTAMPTZ 	DEFAULT NOW(),
-	end_time    	TIMESTAMPTZ 	DEFAULT NULL,
-	additional_points INT 		DEFAULT 0
+create table "team_task" (
+    id		            uuid        not null	default uuid_generate_v4(),
+	task_id		        uuid	    not null,
+    team_id 	        uuid	    not null,
+	start_time	        timestamptz not null 	default now(),
+	end_time    	    timestamptz 	        default null,
+	additional_points   int 		not null    default 0,
+
+	primary key (id),
+
+    foreign key (task_id)
+        references "task" (id),
+    foreign key (team_id)
+        references "team" (id)
 );
 
-CREATE TABLE types_answers (
-	line_num	SERIAL,
-	id		INT		NOT NULL	PRIMARY KEY,
-	title		text		NOT NULL
+create table "answer_type" (
+	id		int		generated always as identity,
+	title	text	not null,
+
+	primary key (id)
 );
 
-CREATE TABLE answers_tasks (
-	line_num	SERIAL,
-	id		text		NOT NULL,
-	task_id		text 		NOT NULL,
-	FOREIGN KEY (task_id) 
-		REFERENCES tasks (id),
-	answer_type_id	INT		NOT NULL,
-	FOREIGN KEY (answer_type_id) 
-		REFERENCES types_answers (id),
-	data 		text 		NOT NULL
+create table "answer" (
+    id		        uuid    not null	default uuid_generate_v4(),
+    task_id		    uuid    not null,
+    answer_type_id	int		not null,
+    data 		    text 	not null,
+
+    primary key (id),
+
+	foreign key (task_id)
+		references "task" (id),
+	foreign key (answer_type_id)
+		references "answer_type" (id)
 );
 
-CREATE TABLE secrets (
-	line_num	SERIAL,
-	id		text		NOT NULL	PRIMARY KEY,
-	title		text 		NOT NULL,
-	description	text
+create table "secret" (
+	id		    uuid    not null	default uuid_generate_v4(),
+	title		text    not null,
+	description	text,
+
+	primary key (id)
 );
 
-CREATE TABLE answers_secrets (
-	line_num	SERIAL,
-	id		text		NOT NULL,
-	secret_id	text 		NOT NULL,
-	FOREIGN KEY (secret_id) 
-		REFERENCES secrets (id),
-	answer_type_id	INT		NOT NULL,
-	FOREIGN KEY (answer_type_id) 
-		REFERENCES types_answers (id),
-	data 		text 		NOT NULL
+create table "answer_secret" (
+    id		        uuid    not null	default uuid_generate_v4(),
+	secret_id	    uuid 	not null,
+    answer_type_id	int		not null,
+    data 		    text 	not null,
+
+    primary key (id),
+
+	foreign key (secret_id)
+		references "secret" (id),
+	foreign key (answer_type_id)
+		REFERENCES "answer_type" (id)
 );
 
-CREATE TABLE team_secrets (
-	line_num	SERIAL,
-	id		text		NOT NULL,
-	secret_id 	text		NOT NULL,
-	FOREIGN KEY (secret_id) 
-		REFERENCES secrets (id),
-	team_id 	text 	    	NOT NULL,
-	FOREIGN KEY (team_id) 
-		REFERENCES teams (id),
-	start_time  	TIMESTAMPTZ 	DEFAULT NOW(),
-	end_time    	TIMESTAMPTZ 	DEFAULT NULL
+create table "team_secret" (
+	id		    uuid        not null	default uuid_generate_v4(),
+	secret_id 	uuid	    not null,
+    team_id 	uuid 	    not null,
+    start_time  timestamptz 	        default now(),
+    end_time    timestamptz 	        default null,
+
+    primary key (id),
+
+	foreign key (secret_id)
+		references "secret" (id),
+	foreign key (team_id)
+		references "team" (id)
 );

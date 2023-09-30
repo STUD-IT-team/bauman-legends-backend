@@ -2,11 +2,41 @@ version: '3.8'
 
 services:
   database:
+    container_name: "${DB_DN}"
     image: postgres:15.4
     env_file:
       - ./db.env
     volumes:
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql
-      - ../db-data:/var/lib/postgresql/data
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
     ports:
-      - 5433:5432
+      - "5432:5432"
+
+  api:
+    container_name: "${API_DN}"
+    depends_on:
+      - auth
+    build:
+      context: ../
+      dockerfile: cmd/api/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${API_PORT}:${API_PORT}"
+
+  auth:
+    container_name: "${AUTH_DN}"
+    depends_on:
+      - database
+    build:
+      context: ../
+      dockerfile: cmd/auth/Dockerfile
+    env_file:
+      - .env
+      - auth.env
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
+
+networks:
+  default:
+    name: bauman-legends

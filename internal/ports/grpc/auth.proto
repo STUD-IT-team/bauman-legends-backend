@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./internal/ports/grpc";
+
+service Auth {
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc Logout(LogoutRequest) returns (EmptyResponse) {}
+    rpc Check(CheckRequest) returns (CheckResponse) {}
+    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
+    rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
+}
+
+message RegisterRequest {
+    string name = 1;
+    string group = 2;
+    string email = 3;
+    string password = 4;
+    string telegram = 5;
+    string vk = 6;
+    string phoneNumber = 7;
+    string clientBrowser = 8;
+    string clientOS = 9;
+}
+
+message RegisterResponse {
+    string accessToken = 1;
+    string expires = 2;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+    string clientBrowser = 3;
+    string clientOS = 4;
+}
+
+message LoginResponse {
+    string accessToken = 1;
+    string expires = 2;
+}
+
+message LogoutRequest {
+    string accessToken = 1;
+}
+
+message EmptyResponse {}
+
+message CheckRequest {
+    string accessToken = 1;
+}
+
+message CheckResponse {
+    bool valid = 1;
+}
+
+message GetProfileRequest {
+    string accessToken = 1;
+}
+
+message GetProfileResponse {
+    string name = 1;
+    string group = 2;
+    string email = 3;
+    string telegram = 4;
+    string vk = 5;
+    string phoneNumber = 6;
+}
+
+message ChangeProfileRequest {
+    string accessToken = 1;
+    string name = 2;
+    string group = 3;
+    string password = 4;
+    string email = 5;
+    string telegram = 6;
+    string vk = 7;
+    string phoneNumber = 8;
+}
