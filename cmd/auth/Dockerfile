@@ -3,7 +3,11 @@ FROM golang:latest
 RUN mkdir /app
 WORKDIR /app
 
-COPY . .
+COPY ./cmd/auth ./cmd/auth
+COPY ./internal ./internal
+COPY ./pkg ./pkg
+COPY ./go.mod .
+COPY ./go.sum .
 RUN go mod download
 
 WORKDIR /app/cmd/auth

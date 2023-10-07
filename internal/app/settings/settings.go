@@ -1,7 +1,7 @@
 package settings
 
 import (
-	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/const"
+	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	log "github.com/sirupsen/logrus"
 )
 
