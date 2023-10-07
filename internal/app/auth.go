@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	cache2 "github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
-	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/const"
+	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
