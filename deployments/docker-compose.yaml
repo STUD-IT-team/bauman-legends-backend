@@ -3,7 +3,7 @@ version: '3.8'
 services:
   database:
     container_name: "${DB_DN}"
-    image: postgres:15.4
+    image: postgres:15.4-alpine
     env_file:
       - ./db.env
     volumes:
