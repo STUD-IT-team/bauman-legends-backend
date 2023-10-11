@@ -5,7 +5,6 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
-	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -44,11 +43,11 @@ func main() {
 	handler := handlers.NewHTTPHandler(api)
 
 	r := chi.NewRouter()
-	r.Post("/user", handler.Register)
-	r.Post("/user/auth", handler.Login)
-	r.Delete("/user/session", handler.Logout)
-	r.Get("/user", handler.GetProfile)
-	r.Put("/user", handler.ChangeProfile)
+	r.Post("/api/user", handler.Register)
+	r.Post("/api/user/auth", handler.Login)
+	r.Delete("/api/user/session", handler.Logout)
+	r.Get("/api/user", handler.GetProfile)
+	r.Put("/api/user", handler.ChangeProfile)
 
 	log.WithField(
 		"origin.function", "main",
