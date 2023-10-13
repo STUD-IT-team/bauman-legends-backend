@@ -5,6 +5,7 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
+	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
