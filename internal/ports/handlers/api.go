@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 )
 
 type HTTPHandler struct {
@@ -232,6 +233,51 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeProfile",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var reqBody request.ChangePassword
+	if err = json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	req := &grpc2.ChangePasswordRequest{
+		AccessToken: cookie.Value,
+		OldPassword: reqBody.OldPassword,
+		NewPassword: reqBody.NewPassword,
+	}
+
+	err = h.Api.ChangePassword(req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf(
+			"Ошибка при изменении пароля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "incorrect authorization data", http.StatusUnauthorized)
 		return
 	}
 }

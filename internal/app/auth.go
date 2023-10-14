@@ -3,6 +3,10 @@ package app
 import (
 	"context"
 	"errors"
+	"os"
+	"strconv"
+	"time"
+
 	cache2 "github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
@@ -12,9 +16,6 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"os"
-	"strconv"
-	"time"
 )
 
 type Auth struct {
@@ -226,6 +227,54 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		log.WithField(
 			"origin.function", "ChangeProfile",
 		).Errorf("Ошибка при изменении профиля пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	return &grpc2.EmptyResponse{}, nil
+}
+
+func (s *Auth) ChangePassword(_ context.Context, req *grpc2.ChangePasswordRequest) (*grpc2.EmptyResponse, error) {
+	accessToken := req.GetAccessToken()
+	session := s.SessionCache.Find(accessToken)
+
+	if session == nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Сессия %s не найдена", req.AccessToken)
+		return nil, errors.New("session not found")
+	}
+
+	curHashPassword, err := s.Repository.GetUserPasswordById(session.UserID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Не удалось получить текущий пароль пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(curHashPassword), []byte(req.OldPassword))
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Пароли не совпадают: %s", err.Error())
+		return nil, err
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 8)
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Не удалось создать хэш нового пароля пользователя: %s", err.Error())
+		return nil, err
+	}
+	req.NewPassword = string(hash)
+
+	err = s.Repository.ChangeUserPassword(session.UserID, req.NewPassword)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Ошибка при изменении пароля пользователя: %s", err.Error())
 		return nil, err
 	}
 

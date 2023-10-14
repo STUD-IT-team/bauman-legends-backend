@@ -85,3 +85,10 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 		PhoneNumber: req.PhoneNumber,
 	}
 }
+
+func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.ChangePassword {
+	return &request.ChangePassword{
+		OldPassword: req.OldPassword,
+		NewPassword: req.NewPassword,
+	}
+}
