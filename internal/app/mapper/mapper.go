@@ -71,6 +71,7 @@ func MakeProfileResponse(res *grpc2.GetProfileResponse) *response.UserProfile {
 		Telegram:    res.Telegram,
 		VK:          res.Vk,
 		PhoneNumber: res.PhoneNumber,
+		TeamID:      res.TeamID,
 	}
 }
 
@@ -83,18 +84,5 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 		VK:          req.Vk,
 		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
-	}
-}
-
-func MakeRegisterTeamRequest(req *grpc2.RegisterTeamRequest) *request.RegisterTeam {
-	return &request.RegisterTeam{
-		TeamName: req.TeamName,
-	}
-}
-
-func MakeGrpcRequestRegisterTeam(req *request.RegisterTeam) *grpc2.RegisterTeamRequest {
-	return &grpc2.RegisterTeamRequest{
-		AccessToken: "",
-		TeamName:    req.TeamName,
 	}
 }

@@ -12,7 +12,4 @@ type IUserAuthStorage interface {
 	CheckUser(email string) (exists bool, err error)
 	GetUserProfile(userID string) (*response.UserProfile, error)
 	ChangeUserProfile(userID string, profile *request.ChangeProfile) error
-
-	CreateTeam(team request.RegisterTeam) (TeamID string, err error)
-	CheckTeam(team request.RegisterTeam) (exists bool, err error)
 }

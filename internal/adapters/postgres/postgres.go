@@ -103,7 +103,8 @@ func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, 
 					telegram, 
 					vk, 
 					phone_number, 
-					email 
+					email, 
+					team_id
 				from "user" 
 					where id = $1;
 `
@@ -153,10 +154,10 @@ update "user"
 	return nil
 }
 
-func (r *UserAuthStorage) CheckTeam(team request.RegisterTeam) (exists bool, err error) {
+func (r *UserAuthStorage) CheckTeam(teamName string) (exists bool, err error) {
 	query := `select exists (select 1 from "team" where title = $1)`
 
-	err = r.db.Get(&exists, query, team.TeamName)
+	err = r.db.Get(&exists, query, teamName)
 	if err != nil {
 		log.WithField(
 			"origin.function", "CheckTeam",
@@ -167,14 +168,14 @@ func (r *UserAuthStorage) CheckTeam(team request.RegisterTeam) (exists bool, err
 	return exists, nil
 }
 
-func (r *UserAuthStorage) CreateTeam(team request.RegisterTeam) (TeamID string, err error) {
+func (r *UserAuthStorage) CreateTeam(teamName string) (TeamID string, err error) {
 	query := `insert into "team" (
                     title
                     ) values (
                               $1
                     ) returning id;
 `
-	err = r.db.Get(&TeamID, query, team.TeamName)
+	err = r.db.Get(&TeamID, query, teamName)
 	if err != nil {
 		log.WithField(
 			"origin.function", "CreateTeam",
@@ -183,4 +184,83 @@ func (r *UserAuthStorage) CreateTeam(team request.RegisterTeam) (TeamID string, 
 	}
 
 	return TeamID, nil
+}
+
+func (r *UserAuthStorage) UpdateTeam(teamName string) error {
+	query := `	
+		update "team"
+	    set title=$2
+	    where title = $1;
+`
+	_, err := r.db.Exec(query,
+		teamName,
+		teamName,
+	)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeUserProfile",
+		).Errorf("Ошибка при изменении данных пользователя: %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserAuthStorage) GetTeam(teamID string) (response.GetTeam, error) {
+	var team response.GetTeam
+	var members []response.Member
+	query := `select id, title from "team" where id = $1;`
+	err := r.db.Get(&team, query, teamID)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeUserProfile",
+		).Errorf("Ошибка при попытке достать данные команды: %s", err.Error())
+		return response.GetTeam{}, err
+	}
+	mems, err := r.db.Query(`select id, name, role_id from "user" where team_id = $1;`, teamID)
+	for mems.Next() {
+		var mem response.Member
+		err = mems.Scan(&mem.Id, &mem.Name, &mem.Role)
+		if err != nil {
+			return response.GetTeam{}, err
+		}
+	}
+	copy(team.Members, members)
+	return team, nil
+}
+
+func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
+	_, err := r.db.Exec(`update "user" set team_id=null, role_id=null where team_id = $1;`, TeamID)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(`delete from "team" where team_id=$1;`, TeamID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *UserAuthStorage) InviteToTeam(UserID string, TeamID string) error {
+	_, err := r.db.Exec(`update "user" set team_id=$1, where id = $2;`, TeamID, UserID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *UserAuthStorage) DeleteFromTeam(UserID string, TeamID string) error {
+	_, err := r.db.Exec(`update "user" set team_id=null, where id = $2 and team_id =$1;`, TeamID, UserID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
+	_, err := r.db.Exec(`update "user" set role_id=$1, where id = $2;`, RoleID, UserID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

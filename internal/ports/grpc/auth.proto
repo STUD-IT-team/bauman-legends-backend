@@ -12,8 +12,6 @@ service Auth {
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
     rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
 
-    rpc RegisterTeam(RegisterTeamRequest) returns (RegisterTeamResponse) {}
-    rpc GetTeam(GetTeamRequest) returns (GetTeamResponse) {}
 }
 
 message RegisterRequest {
@@ -70,6 +68,7 @@ message GetProfileResponse {
     string telegram = 4;
     string vk = 5;
     string phoneNumber = 6;
+    string teamID = 7;
 }
 
 message ChangeProfileRequest {
@@ -83,31 +82,6 @@ message ChangeProfileRequest {
     string phoneNumber = 8;
 }
 
-message RegisterTeamRequest {
-    string accessToken = 1;
-    string teamName = 2;
-}
 
-message RegisterTeamResponse {
-    string created = 1;
-}
 
-message GetTeamRequest {
-    string accessToken = 1;
-    string teamName = 2;
-}
-
-message GetTeamResponse {
-    string teamID = 1;
-    string teamTitle = 2;
-    int64 teamPoints = 3;
-    repeated Member members = 4;
-
-}
-
-message Member {
-    int64 id = 1;
-    string name = 2;
-    string role = 3;
-}
 

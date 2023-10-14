@@ -49,7 +49,16 @@ func main() {
 	r.Delete("/api/user/session", handler.Logout)
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.ChangeProfile)
+
 	r.Post("/api/team", handler.RegisterTeam)
+	r.Put("/api/team", handler.ChangeTeam)
+	r.Get("/api/team", handler.GetTeam)
+	r.Delete("/api/team", handler.DeleteTeam)
+
+	r.Post("/api/team/invite", handler.Invite)
+	r.Delete("/api/team/member", handler.DeleteMember)
+	r.Put("/api/team/member", handler.UpdateMember)
+
 	log.WithField(
 		"origin.function", "main",
 	).Info(
