@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
@@ -16,8 +17,9 @@ type HTTPHandler struct {
 	Teams *app.TeamService
 }
 
-func NewHTTPHandler(api *app.Api) *HTTPHandler {
-	return &HTTPHandler{Api: api}
+func NewHTTPHandler(api *app.Api, team *app.TeamService) *HTTPHandler {
+	return &HTTPHandler{Api: api,
+		Teams: team}
 }
 
 func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -265,6 +267,7 @@ func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
 
 	req.Session = cookie.Value
 	res, err := h.Teams.RegisterTeam(&req)
+	fmt.Println(res.TeamID)
 
 	if err != nil {
 		log.WithField(
@@ -385,7 +388,7 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
+	res.Points = 0
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		log.WithField(

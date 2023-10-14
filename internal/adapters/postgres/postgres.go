@@ -23,6 +23,16 @@ func NewUserAuthStorage(dataSource string) (repository.IUserAuthStorage, error) 
 	}, err
 }
 
+func NewTeamStorage(dataSource string) (repository.TeamStorage, error) {
+	db, err := sqlx.Open("pgx", dataSource)
+	if err != nil {
+		return nil, err
+	}
+	return &UserAuthStorage{
+		db: db,
+	}, err
+}
+
 func (r *UserAuthStorage) CreateUser(user request.Register) (userID string, err error) {
 	query := `insert into "user" (
                     password, 

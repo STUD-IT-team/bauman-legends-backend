@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
@@ -40,8 +41,19 @@ func main() {
 		}
 	}(conn)
 
+	repo, err := postgres.NewTeamStorage(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api)
+	teams := app.NewTeamService(conn, repo)
+	handler := handlers.NewHTTPHandler(api, teams)
 
 	r := chi.NewRouter()
 	r.Post("/api/user", handler.Register)

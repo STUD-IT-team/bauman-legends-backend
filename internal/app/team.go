@@ -7,11 +7,19 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
+	"google.golang.org/grpc"
 )
 
 type TeamService struct {
 	storage repository.TeamStorage
 	auth    grpc2.AuthClient
+}
+
+func NewTeamService(conn grpc.ClientConnInterface, r repository.TeamStorage) *TeamService {
+	return &TeamService{
+		storage: r,
+		auth:    grpc2.NewAuthClient(conn),
+	}
 }
 
 func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.RegisterTeam, error) {
