@@ -11,6 +11,9 @@ service Auth {
     rpc Check(CheckRequest) returns (CheckResponse) {}
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
     rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
+
+    rpc RegisterTeam(RegisterTeamRequest) returns (RegisterTeamResponse) {}
+    rpc GetTeam(GetTeamRequest) returns (GetTeamResponse) {}
 }
 
 message RegisterRequest {
@@ -79,3 +82,32 @@ message ChangeProfileRequest {
     string vk = 7;
     string phoneNumber = 8;
 }
+
+message RegisterTeamRequest {
+    string accessToken = 1;
+    string teamName = 2;
+}
+
+message RegisterTeamResponse {
+    string created = 1;
+}
+
+message GetTeamRequest {
+    string accessToken = 1;
+    string teamName = 2;
+}
+
+message GetTeamResponse {
+    string teamID = 1;
+    string teamTitle = 2;
+    int64 teamPoints = 3;
+    repeated Member members = 4;
+
+}
+
+message Member {
+    int64 id = 1;
+    string name = 2;
+    string role = 3;
+}
+
