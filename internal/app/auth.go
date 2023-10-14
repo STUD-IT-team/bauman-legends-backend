@@ -16,8 +16,13 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user exists")
+	ErrUserNotFound      = errors.New("user does not exist")
+	ErrInvalidPassword   = errors.New("incorrect password")
+	ErrSessionNotFound   = errors.New("session not found")
 )
 
 type Auth struct {
@@ -47,8 +52,7 @@ func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.R
 		log.WithField(
 			"origin.function", "Register",
 		).Warnf("Пользователь с логином %s уже существует", mappedReq.Email)
-		err = status.Error(codes.AlreadyExists, "user exists")
-		return nil, err
+		return nil, ErrUserAlreadyExists
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
@@ -106,8 +110,7 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warnf("Пользователь с логином %s не найден", req.Email)
-		err = status.Error(codes.NotFound, "user does not exist")
-		return nil, err
+		return nil, ErrUserNotFound
 	}
 
 	hashedPassword, err := s.Repository.GetUserPassword(req.Email)
@@ -123,8 +126,7 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warn("Неверный пароль")
-		err = status.Error(codes.InvalidArgument, "incorrect password")
-		return nil, err
+		return nil, ErrInvalidPassword
 	}
 
 	userID, err := s.Repository.GetUserID(req.Email)
@@ -191,7 +193,7 @@ func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grp
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf("Сессия %s не найдена", req.AccessToken)
-		return nil, errors.New("session not found")
+		return nil, ErrSessionNotFound
 	}
 
 	profile, err := s.Repository.GetUserProfile(session.UserID)
@@ -214,7 +216,7 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		log.WithField(
 			"origin.function", "ChangeProfile",
 		).Errorf("Сессия %s не найдена", req.AccessToken)
-		return nil, errors.New("session not found")
+		return nil, ErrSessionNotFound
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
@@ -246,7 +248,7 @@ func (s *Auth) ChangePassword(_ context.Context, req *grpc2.ChangePasswordReques
 		log.WithField(
 			"origin.function", "ChangePassword",
 		).Errorf("Сессия %s не найдена", req.AccessToken)
-		return nil, errors.New("session not found")
+		return nil, ErrSessionNotFound
 	}
 
 	curHashPassword, err := s.Repository.GetUserPasswordById(session.UserID)
@@ -262,8 +264,7 @@ func (s *Auth) ChangePassword(_ context.Context, req *grpc2.ChangePasswordReques
 		log.WithField(
 			"origin.function", "ChangePassword",
 		).Errorf("Пароли не совпадают: %s", err.Error())
-		err = status.Error(codes.InvalidArgument, "incorrect password")
-		return nil, err
+		return nil, ErrInvalidPassword
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 8)

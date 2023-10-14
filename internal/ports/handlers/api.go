@@ -10,7 +10,6 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -39,7 +38,7 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Register(&req)
 
 	if err != nil {
-		if status.Code(err) == codes.AlreadyExists {
+		if status.Convert(err).Message() == app.ErrUserAlreadyExists.Error() {
 			log.WithField(
 				"origin.function", "Register",
 			).Errorf(
@@ -96,7 +95,7 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Login(&req)
 
 	if err != nil {
-		if status.Code(err) == codes.NotFound || status.Code(err) == codes.InvalidArgument {
+		if status.Convert(err).Message() == app.ErrUserNotFound.Error() || status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
 			log.WithField(
 				"origin.function", "Login",
 			).Errorf(
@@ -293,7 +292,7 @@ func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	err = h.Api.ChangePassword(req)
 
 	if err != nil {
-		if status.Code(err) == codes.InvalidArgument {
+		if status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
 			log.WithField(
 				"origin.function", "ChangePassword",
 			).Errorf(
