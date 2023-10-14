@@ -231,3 +231,53 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 
 	return &grpc2.EmptyResponse{}, nil
 }
+
+func (s *Auth) RegisterTeam(_ context.Context, req *grpc2.RegisterTeamRequest) (*grpc2.RegisterTeamResponse, error) {
+	mappedReq := mapper.MakeRegisterTeamRequest(req)
+	exists, err := s.Repository.CheckTeam(*mappedReq)
+	if err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+		).Errorf("Не удалось проверить наличие команды в базе: %s", err.Error())
+		return nil, err
+	}
+
+	if exists {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+		).Warnf("команда с названием %s уже существует", mappedReq.TeamName)
+		return nil, errors.New("team exists")
+	}
+
+	teamID, err := s.Repository.CreateTeam(*mappedReq)
+	if err != nil {
+		log.WithField(
+			"origin.function", "Register",
+		).Errorf("Не удалось зарегистрировать команду: %s", err.Error())
+		return nil, err
+	}
+
+	sessionID := uuid.NewString()
+	var sessionDuration int
+	if sessionDuration, err = strconv.Atoi(os.Getenv("SESSION_DURATION_HOURS")); err != nil {
+		sessionDuration = 12
+	}
+	value := cache2.Session{
+		UserID:        userID,
+		ExpireAt:      time.Now().Add(time.Hour * time.Duration(sessionDuration)),
+		EnteredAt:     time.Now(),
+		ClientBrowser: req.ClientBrowser,
+		ClientOS:      req.ClientOS,
+	}
+
+	s.SessionCache.Put(sessionID, value)
+
+	log.WithField(
+		"origin.function", "Register",
+	).Infof("Пользователь %s зарегистрирован", mappedReq.Email)
+
+	return &grpc2.RegisterTeamResponse{
+		AccessToken: sessionID,
+		Expires:     value.ExpireAt.Format(consts.GrpcTimeFormat),
+	}, nil
+}

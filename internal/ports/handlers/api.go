@@ -235,3 +235,32 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+	var req request.RegisterTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Api.RegisterTeam(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+		).Errorf(
+			"Ошибка регистрации команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+}

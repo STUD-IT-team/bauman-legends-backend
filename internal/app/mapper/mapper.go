@@ -85,3 +85,16 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 		PhoneNumber: req.PhoneNumber,
 	}
 }
+
+func MakeRegisterTeamRequest(req *grpc2.RegisterTeamRequest) *request.RegisterTeam {
+	return &request.RegisterTeam{
+		TeamName: req.TeamName,
+	}
+}
+
+func MakeGrpcRequestRegisterTeam(req *request.RegisterTeam) *grpc2.RegisterTeamRequest {
+	return &grpc2.RegisterTeamRequest{
+		AccessToken: "",
+		TeamName:    req.TeamName,
+	}
+}

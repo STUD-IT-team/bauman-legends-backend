@@ -120,3 +120,30 @@ func (a *Api) ChangeProfile(req *grpc2.ChangeProfileRequest) error {
 
 	return nil
 }
+
+func (a *Api) RegisterTeam(req *request.RegisterTeam) (*grpc2.RegisterTeamResponse, error) {
+	reqGrpc := mapper.MakeGrpcRequestRegisterTeam(req)
+
+	if reqGrpc == nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+		).Error(
+			"Пустой grpc-запрос",
+		)
+		return nil, errors.New("пустой grpc-запрос")
+	}
+
+	res, err := a.AuthClient.RegisterTeam(context.Background(), reqGrpc)
+	if err != nil {
+		log.WithField(
+			"origin.function", "Register",
+		).Errorf(
+			"Не удалось зарегистрировать команду %s: %s",
+			reqGrpc.TeamName,
+			err.Error(),
+		)
+		return nil, err
+	}
+
+	return res, nil
+}

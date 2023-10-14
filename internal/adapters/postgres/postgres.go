@@ -152,3 +152,35 @@ update "user"
 
 	return nil
 }
+
+func (r *UserAuthStorage) CheckTeam(team request.RegisterTeam) (exists bool, err error) {
+	query := `select exists (select 1 from "team" where title = $1)`
+
+	err = r.db.Get(&exists, query, team.TeamName)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckTeam",
+		).Errorf("Ошибка при проверке существования команды: %s", err.Error())
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *UserAuthStorage) CreateTeam(team request.RegisterTeam) (TeamID string, err error) {
+	query := `insert into "team" (
+                    title
+                    ) values (
+                              $1
+                    ) returning id;
+`
+	err = r.db.Get(&TeamID, query, team.TeamName)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CreateTeam",
+		).Errorf("Ошибка при создании команды: %s", err.Error())
+		return "", err
+	}
+
+	return TeamID, nil
+}
