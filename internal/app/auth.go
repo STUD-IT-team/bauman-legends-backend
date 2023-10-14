@@ -16,6 +16,8 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Auth struct {
@@ -45,7 +47,8 @@ func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.R
 		log.WithField(
 			"origin.function", "Register",
 		).Warnf("Пользователь с логином %s уже существует", mappedReq.Email)
-		return nil, errors.New("user exists")
+		err = status.Error(codes.AlreadyExists, "user exists")
+		return nil, err
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
@@ -103,7 +106,8 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warnf("Пользователь с логином %s не найден", req.Email)
-		return nil, errors.New("user does not exist")
+		err = status.Error(codes.NotFound, "user does not exist")
+		return nil, err
 	}
 
 	hashedPassword, err := s.Repository.GetUserPassword(req.Email)
@@ -119,7 +123,8 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warn("Неверный пароль")
-		return nil, errors.New("incorrect password")
+		err = status.Error(codes.InvalidArgument, "incorrect password")
+		return nil, err
 	}
 
 	userID, err := s.Repository.GetUserID(req.Email)
@@ -257,6 +262,7 @@ func (s *Auth) ChangePassword(_ context.Context, req *grpc2.ChangePasswordReques
 		log.WithField(
 			"origin.function", "ChangePassword",
 		).Errorf("Пароли не совпадают: %s", err.Error())
+		err = status.Error(codes.InvalidArgument, "incorrect password")
 		return nil, err
 	}
 

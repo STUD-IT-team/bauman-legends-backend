@@ -10,6 +10,8 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type HTTPHandler struct {
@@ -37,13 +39,23 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Register(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Register",
-		).Errorf(
-			"Ошибка регистрации пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Code(err) == codes.AlreadyExists {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Пользователь уже существует: %s",
+				err.Error(),
+			)
+			http.Error(w, "user exists", http.StatusConflict)
+		} else {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Ошибка регистрации пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -84,13 +96,23 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Login(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Login",
-		).Errorf(
-			"Ошибка входа: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Code(err) == codes.NotFound || status.Code(err) == codes.InvalidArgument {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Пользователь не найден: %s",
+				err.Error(),
+			)
+			http.Error(w, "user does not exist", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Ошибка входа: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -241,7 +263,7 @@ func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "ChangeProfile",
+			"origin.function", "ChangePassword",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -271,13 +293,23 @@ func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	err = h.Api.ChangePassword(req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "ChangePassword",
-		).Errorf(
-			"Ошибка при изменении пароля пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "incorrect authorization data", http.StatusUnauthorized)
+		if status.Code(err) == codes.InvalidArgument {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Текущий пароль не совпадает с введенным: %s",
+				err.Error(),
+			)
+			http.Error(w, "not authorized", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Ошибка при изменении пароля пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 }
