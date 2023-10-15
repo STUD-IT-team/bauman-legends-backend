@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package task;
+
+option go_package = "./internal/ports/grpc";
+
+service Task {
+  rpc GetTaskTypes(EmptyRequest) returns (TaskTypesResponse) {}
+}
+
+message EmptyRequest {}
+message EmptyResponse {}
+
+message TaskTypesResponse {
+  message TaskTypes {
+    string name = 1;
+    int32 id = 2;
+    bool isActive = 3;
+  }
+  repeated TaskTypes taskTypes = 1;
+}
