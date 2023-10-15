@@ -104,7 +104,7 @@ func (t *TeamService) GetTeam(req *request.GetTeam) (*response.GetTeam, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	log.Infof("участники команды повыше:%+v", team)
 	return mapper.MakeHttpResponseGetTeam(&team), nil
 }
 

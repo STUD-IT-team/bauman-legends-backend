@@ -228,7 +228,6 @@ func (r *UserAuthStorage) UpdateTeam(teamName string) error {
 func (r *UserAuthStorage) GetTeam(teamID string) (domain.Team, error) {
 	log.Infof("team from GetTeam: %s", teamID)
 	var team domain.Team
-	var members []domain.Member
 	query := `select id, title from "team" where id = $1;`
 	err := r.db.QueryRow(query, teamID).Scan(&team.TeamId, &team.Title)
 	log.Infof("team from db: %s:%s", team.TeamId, team.Title)
@@ -242,12 +241,15 @@ func (r *UserAuthStorage) GetTeam(teamID string) (domain.Team, error) {
 	for mems.Next() {
 		var mem domain.Member
 		err = mems.Scan(&mem.Id, &mem.Name, &mem.Role)
+		log.Infof("members: %+v", mems)
 		if err != nil {
 			return domain.Team{}, err
 		}
-		members = append(members, mem)
+		team.Members = append(team.Members, mem)
 	}
-	copy(team.Members, members)
+	//log.Infof("участники команды:%+v", members)
+	//copy(team.Members, members)
+	log.Infof("участники команды пониже:%+v", team.Members)
 	return team, nil
 }
 
