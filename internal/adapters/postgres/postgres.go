@@ -129,13 +129,17 @@ func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, 
 	} else {
 		profile.TeamID = ""
 	}
-	log.Println(profile)
+
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetUserProfile",
 		).Errorf("Ошибка при получении данных пользователя: %s", err.Error())
 		return nil, err
 	}
+
+	profile.ID = userID
+
+	log.Printf("profile: %+v", profile)
 
 	return &profile, nil
 }
@@ -258,21 +262,21 @@ func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Exec(`delete from "team" where team_id=$1;`, TeamID)
+	_, err = r.db.Exec(`delete from "team" where id=$1;`, TeamID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 func (r *UserAuthStorage) InviteToTeam(UserID string, TeamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id=$1, where id = $2;`, TeamID, UserID)
+	_, err := r.db.Exec(`update "user" set team_id=$1, role_id = 0 where id = $2;`, TeamID, UserID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 func (r *UserAuthStorage) DeleteFromTeam(UserID string, TeamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id=null, where id = $2 and team_id =$1;`, TeamID, UserID)
+	_, err := r.db.Exec(`update "user" set team_id=null where id = $2 and team_id =$1;`, TeamID, UserID)
 	if err != nil {
 		return err
 	}
@@ -280,7 +284,7 @@ func (r *UserAuthStorage) DeleteFromTeam(UserID string, TeamID string) error {
 }
 
 func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
-	_, err := r.db.Exec(`update "user" set role_id=$1, where id = $2;`, RoleID, UserID)
+	_, err := r.db.Exec(`update "user" set role_id=$1 where id = $2;`, RoleID, UserID)
 	if err != nil {
 		return err
 	}

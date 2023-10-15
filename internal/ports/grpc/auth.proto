@@ -70,6 +70,7 @@ message GetProfileResponse {
     string vk = 5;
     string phoneNumber = 6;
     string teamID = 7;
+    string id = 8;
 }
 
 message ChangeProfileRequest {

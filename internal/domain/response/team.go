@@ -11,10 +11,10 @@ type UpdateTeam struct {
 }
 
 type GetTeam struct {
-	TeamId  string `json:"team_id"`
-	Title   string `json:"title"`
-	Points  int    `json:"points"`
-	Members []Member
+	TeamId  string   `json:"team_id"`
+	Title   string   `json:"title"`
+	Points  int      `json:"points"`
+	Members []Member `json:"members"`
 }
 
 type Member struct {

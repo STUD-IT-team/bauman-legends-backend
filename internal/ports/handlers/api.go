@@ -420,16 +420,6 @@ func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 
 	var req request.DeleteTeam
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "DeleteTeam",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
 	req.Session = cookie.Value
 
 	err = h.Teams.DeleteTeam(&req)

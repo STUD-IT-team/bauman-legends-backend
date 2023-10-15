@@ -55,6 +55,7 @@ func MakeGrpcRequestLogin(req *request.Login) *grpc2.LoginRequest {
 
 func MakeGrpcResponseProfile(res *response.UserProfile) *grpc2.GetProfileResponse {
 	return &grpc2.GetProfileResponse{
+		Id:          res.ID,
 		Name:        res.Name,
 		Group:       res.Group,
 		Email:       res.Email,
@@ -67,6 +68,7 @@ func MakeGrpcResponseProfile(res *response.UserProfile) *grpc2.GetProfileRespons
 
 func MakeProfileResponse(res *grpc2.GetProfileResponse) *response.UserProfile {
 	return &response.UserProfile{
+		ID:          res.Id,
 		Name:        res.Name,
 		Group:       res.Group,
 		Email:       res.Email,

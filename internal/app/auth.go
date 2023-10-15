@@ -191,7 +191,7 @@ func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grp
 	}
 
 	profile, err := s.Repository.GetUserProfile(session.UserID)
-	log.Infof("%+v", profile)
+	log.Infof("service profile: %+v", profile)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetProfile",

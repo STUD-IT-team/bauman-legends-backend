@@ -23,11 +23,15 @@ create table "team" (
 );
 
 create table "role" (
-	id		int		generated always as identity,
+	id		int		,
 	title	text	not null,
 
 	primary key (id)
 );
+
+insert into "role" (id, title) values (0, 'Участник');
+insert into "role" (id, title) values (1, 'Зам');
+insert into "role" (id, title) values (2, 'Капитан');
 
 create table "user" (
     id		        uuid	not null	default uuid_generate_v4(),

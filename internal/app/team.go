@@ -119,12 +119,14 @@ func (t *TeamService) DeleteTeam(req *request.DeleteTeam) error {
 	}
 
 	profile, err := t.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
-
-	err = t.storage.DeleteTeam(profile.TeamID)
-
 	if err != nil {
 		return err
 	}
+
+	if err = t.storage.DeleteTeam(profile.TeamID); err != nil {
+		return err
+	}
+
 	return nil
 }
 

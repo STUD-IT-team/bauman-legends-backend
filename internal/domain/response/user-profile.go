@@ -1,6 +1,7 @@
 package response
 
 type UserProfile struct {
+	ID          string `json:"id"`
 	Name        string `json:"name" db:"name"`
 	Group       string `json:"group" db:"group"`
 	Telegram    string `json:"telegram" db:"telegram"`
