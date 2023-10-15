@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
@@ -119,8 +121,15 @@ func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, 
 					where id = $1;
 `
 	var profile response.UserProfile
-	err := r.db.Get(&profile, query, userID)
-
+	var s sql.NullString
+	res := r.db.QueryRow(query, userID)
+	err := res.Scan(&profile.Name, &profile.Group, &profile.Telegram, &profile.VK, &profile.PhoneNumber, &profile.Email, &s)
+	if s.Valid {
+		profile.TeamID = s.String
+	} else {
+		profile.TeamID = ""
+	}
+	log.Println(profile)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetUserProfile",
@@ -178,22 +187,21 @@ func (r *UserAuthStorage) CheckTeam(teamName string) (exists bool, err error) {
 	return exists, nil
 }
 
-func (r *UserAuthStorage) CreateTeam(teamName string) (TeamID string, err error) {
-	query := `insert into "team" (
+func (r *UserAuthStorage) CreateTeam(teamName string) (string, error) {
+	query := `insert into team (
                     title
                     ) values (
                               $1
-                    ) returning id;
-`
-	err = r.db.Get(&TeamID, query, teamName)
+                    ) returning id;`
+	var teamID string
+	err := r.db.QueryRow(query, teamName).Scan(&teamID)
 	if err != nil {
 		log.WithField(
 			"origin.function", "CreateTeam",
 		).Errorf("Ошибка при создании команды: %s", err.Error())
 		return "", err
 	}
-
-	return TeamID, nil
+	return teamID, nil
 }
 
 func (r *UserAuthStorage) UpdateTeam(teamName string) error {
@@ -217,25 +225,27 @@ func (r *UserAuthStorage) UpdateTeam(teamName string) error {
 	return nil
 }
 
-func (r *UserAuthStorage) GetTeam(teamID string) (response.GetTeam, error) {
-	var team response.GetTeam
-	var members []response.Member
+func (r *UserAuthStorage) GetTeam(teamID string) (domain.Team, error) {
+	log.Infof("team from GetTeam: %s", teamID)
+	var team domain.Team
+	var members []domain.Member
 	query := `select id, title from "team" where id = $1;`
-	err := r.db.Get(&team, query, teamID)
-
+	err := r.db.QueryRow(query, teamID).Scan(&team.TeamId, &team.Title)
+	log.Infof("team from db: %s:%s", team.TeamId, team.Title)
 	if err != nil {
 		log.WithField(
-			"origin.function", "ChangeUserProfile",
+			"origin.function", "GetTeamPG",
 		).Errorf("Ошибка при попытке достать данные команды: %s", err.Error())
-		return response.GetTeam{}, err
+		return domain.Team{}, err
 	}
 	mems, err := r.db.Query(`select id, name, role_id from "user" where team_id = $1;`, teamID)
 	for mems.Next() {
-		var mem response.Member
+		var mem domain.Member
 		err = mems.Scan(&mem.Id, &mem.Name, &mem.Role)
 		if err != nil {
-			return response.GetTeam{}, err
+			return domain.Team{}, err
 		}
+		members = append(members, mem)
 	}
 	copy(team.Members, members)
 	return team, nil
@@ -273,4 +283,10 @@ func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
 		return err
 	}
 	return nil
+
+}
+
+func (r *UserAuthStorage) SetTeamID(UserID string, teamID string) error {
+	_, err := r.db.Exec(`update "user" set team_id = $1 where id = $2;`, teamID, UserID)
+	return err
 }

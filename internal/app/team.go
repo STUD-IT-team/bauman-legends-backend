@@ -3,10 +3,12 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -29,12 +31,12 @@ func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.Register
 	if err != nil {
 		return response.RegisterTeam{}, err
 	}
+	log.Info(res.Valid, "check")
 	if !res.Valid {
 		return response.RegisterTeam{}, errors.New("valid check error")
 	}
 
 	exist, err := t.storage.CheckTeam(req.TeamName)
-
 	if err != nil {
 		return response.RegisterTeam{}, err
 	}
@@ -43,6 +45,11 @@ func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.Register
 		return response.RegisterTeam{}, errors.New("Team already exist")
 	} else {
 		teamID, err := t.storage.CreateTeam(req.TeamName)
+		if err != nil {
+			return response.RegisterTeam{}, err
+		}
+
+		err = t.storage.SetTeamID(res.UserID, teamID)
 		if err != nil {
 			return response.RegisterTeam{}, err
 		}
@@ -77,24 +84,28 @@ func (t *TeamService) UpdateTeam(req *request.ChangeTeam) (response.RegisterTeam
 	}
 }
 
-func (t *TeamService) GetTeam(req *request.GetTeam) (response.GetTeam, error) {
+func (t *TeamService) GetTeam(req *request.GetTeam) (*response.GetTeam, error) {
 	res, err := t.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
 	if err != nil {
-		return response.GetTeam{}, err
+		return nil, err
 	}
 
 	if !res.Valid {
-		return response.GetTeam{}, errors.New("valid check error")
+		return nil, errors.New("valid check error")
 	}
 
 	profile, err := t.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
-
-	team, err := t.storage.GetTeam(profile.TeamID)
-
 	if err != nil {
-		return response.GetTeam{}, err
+		return nil, err
 	}
-	return team, nil
+
+	log.Info(profile.TeamID)
+	team, err := t.storage.GetTeam(profile.TeamID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapper.MakeHttpResponseGetTeam(&team), nil
 }
 
 func (t *TeamService) DeleteTeam(req *request.DeleteTeam) error {

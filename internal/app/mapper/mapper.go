@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
@@ -60,6 +61,7 @@ func MakeGrpcResponseProfile(res *response.UserProfile) *grpc2.GetProfileRespons
 		Telegram:    res.Telegram,
 		Vk:          res.VK,
 		PhoneNumber: res.PhoneNumber,
+		TeamID:      res.TeamID,
 	}
 }
 
@@ -84,5 +86,26 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 		VK:          req.Vk,
 		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
+	}
+}
+
+func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
+	var memb []response.Member
+	for i := range team.Members {
+		role := 0
+		if team.Members[i].Role.Valid {
+			role = int(team.Members[i].Role.Int64)
+		}
+		memb = append(memb, response.Member{
+			Id:   team.Members[i].Id,
+			Name: team.Members[i].Name,
+			Role: role,
+		})
+	}
+	return &response.GetTeam{
+		TeamId:  team.TeamId,
+		Title:   team.Title,
+		Points:  team.Points,
+		Members: memb,
 	}
 }

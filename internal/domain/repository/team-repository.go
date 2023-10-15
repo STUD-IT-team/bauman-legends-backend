@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
+import (
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
+)
 
 type TeamStorage interface {
 	CreateTeam(teamName string) (TeamID string, err error)
@@ -8,7 +10,7 @@ type TeamStorage interface {
 
 	UpdateTeam(teamName string) error
 
-	GetTeam(teamID string) (response.GetTeam, error)
+	GetTeam(teamID string) (domain.Team, error)
 
 	DeleteTeam(TeamID string) error
 
@@ -17,4 +19,6 @@ type TeamStorage interface {
 	DeleteFromTeam(UserID string, TeamID string) error
 
 	UpdateMember(UserID string, RoleID int) error
+
+	SetTeamID(userID string, teamID string) error
 }

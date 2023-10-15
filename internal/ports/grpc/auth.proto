@@ -55,6 +55,7 @@ message CheckRequest {
 
 message CheckResponse {
     bool valid = 1;
+    string userID = 2;
 }
 
 message GetProfileRequest {

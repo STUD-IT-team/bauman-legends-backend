@@ -40,8 +40,9 @@ func main() {
 			)
 		}
 	}(conn)
-
-	repo, err := postgres.NewTeamStorage(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
+	startPGString := "postgresql://postgres:7dgvJVDJvh254aqOpfd@bl-database:5432/postgres"
+	//fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN"))
+	repo, err := postgres.NewTeamStorage(startPGString)
 	if err != nil {
 		log.WithField(
 			"origin.function", "main",
@@ -50,7 +51,7 @@ func main() {
 			err.Error(),
 		)
 	}
-
+	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
 	teams := app.NewTeamService(conn, repo)
 	handler := handlers.NewHTTPHandler(api, teams)

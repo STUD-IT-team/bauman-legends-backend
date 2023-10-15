@@ -63,9 +63,11 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "access-token",
-		Value:   res.GetAccessToken(),
-		Expires: expires,
+		Name:     "access-token",
+		Value:    res.GetAccessToken(),
+		Expires:  expires,
+		HttpOnly: true,
+		Path:     "/",
 	})
 }
 
@@ -110,9 +112,11 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "access-token",
-		Value:   res.GetAccessToken(),
-		Expires: expires,
+		Name:     "access-token",
+		Value:    res.GetAccessToken(),
+		Expires:  expires,
+		HttpOnly: true,
+		Path:     "/",
 	})
 }
 
@@ -279,7 +283,7 @@ func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		log.WithField(
@@ -291,7 +295,6 @@ func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
@@ -364,16 +367,16 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 
 	var req request.GetTeam
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "GetTeam",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
+	//if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	//	log.WithField(
+	//		"origin.function", "GetTeam",
+	//	).Errorf(
+	//		"Ошибка чтения запроса: %s",
+	//		err.Error(),
+	//	)
+	//	http.Error(w, "bad request", http.StatusBadRequest)
+	//	return
+	//}
 
 	req.Session = cookie.Value
 
@@ -394,7 +397,7 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf(
-			"Ошибка при отправке профиля пользователя: %s",
+			"Ошибка при отправке профиля команды: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
