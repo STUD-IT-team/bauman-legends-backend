@@ -293,6 +293,6 @@ func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
 }
 
 func (r *UserAuthStorage) SetTeamID(UserID string, teamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id = $1 where id = $2;`, teamID, UserID)
+	_, err := r.db.Exec(`update "user" set team_id = $1, role_id = 2 where id = $2;`, teamID, UserID)
 	return err
 }
