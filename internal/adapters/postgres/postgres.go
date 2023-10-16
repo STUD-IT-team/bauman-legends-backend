@@ -270,7 +270,7 @@ func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
 	return nil
 }
 func (r *UserAuthStorage) InviteToTeam(UserID string, TeamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id=$1, role_id = 0 where id = $2;`, TeamID, UserID)
+	_, err := r.db.Exec(`update "user" set team_id=$1, role_id = 1 where id = $2;`, TeamID, UserID)
 	if err != nil {
 		return err
 	}
@@ -294,7 +294,7 @@ func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
 }
 
 func (r *UserAuthStorage) SetTeamID(UserID string, teamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id = $1, role_id = 2 where id = $2;`, teamID, UserID)
+	_, err := r.db.Exec(`update "user" set team_id = $1, role_id = 3 where id = $2;`, teamID, UserID)
 	return err
 }
 
