@@ -29,7 +29,6 @@ create table "role" (
 	primary key (id)
 );
 
-
 create table "user" (
     id		        uuid	not null	default uuid_generate_v4(),
 	password 	    text    not null,
