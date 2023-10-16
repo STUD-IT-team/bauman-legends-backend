@@ -152,6 +152,7 @@ func (t *TeamService) InviteToTeam(req *request.InviteToTeam) error {
 	if exists {
 		return errors.New("userId already exists on this team")
 	}
+
 	err = t.storage.InviteToTeam(req.UserID, profile.TeamID)
 
 	if err != nil {

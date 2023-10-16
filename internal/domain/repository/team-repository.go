@@ -25,4 +25,5 @@ type TeamStorage interface {
 	CheckMembership(userId string, teamID string) (bool, error)
 
 	CheckUserExist(userID string) (bool, error)
+
 }
