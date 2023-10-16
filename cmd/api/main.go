@@ -40,7 +40,7 @@ func main() {
 			)
 		}
 	}(conn)
-	startPGString := "postgresql://postgres:7dgvJVDJvh254aqOpfd@bl-database:5432/postgres"
+	startPGString := "postgresql://postgres:7dgvJVDJvh254aqOpfd@bl-database:5432/bauman_legends"
 	//fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN"))
 	repo, err := postgres.NewTeamStorage(startPGString)
 	if err != nil {
