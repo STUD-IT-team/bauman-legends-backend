@@ -145,33 +145,95 @@ func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, 
 }
 
 func (r *UserAuthStorage) ChangeUserProfile(userID string, profile *request.ChangeProfile) error {
-	query := `	
-update "user"
-	    set name=$2,
-	        password=$3,
-	        "group"=$4,
-	        telegram=$5,
-	        vk=$6,
-	        phone_number=$7,
-	        email=$8
-	    where id = $1;
-`
-	_, err := r.db.Exec(query,
-		userID,
-		profile.Name,
-		profile.Password,
-		profile.Group,
-		profile.Telegram,
-		profile.VK,
-		profile.PhoneNumber,
-		profile.Email,
-	)
+	if profile.Name != "" {
+		query := `update "user" set name=$2 where id=$1`
 
-	if err != nil {
-		log.WithField(
-			"origin.function", "ChangeUserProfile",
-		).Errorf("Ошибка при изменении данных пользователя: %s", err.Error())
-		return err
+		_, err := r.db.Exec(query, userID, profile.Name)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении имени пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.Group != "" {
+		query := `update "user" set "group"=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.Group)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении группы пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.Password != "" {
+		query := `update "user" set password=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.Password)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении паоля пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.Telegram != "" {
+		query := `update "user" set telegram=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.Telegram)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении ТГ пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.VK != "" {
+		query := `update "user" set vk=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.VK)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении ВК пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.Email != "" {
+		query := `update "user" set email=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.Email)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении почты пользователя: %s", err.Error())
+			return err
+		}
+	}
+
+	if profile.PhoneNumber != "" {
+		query := `update "user" set phone_number=$2 where id=$1`
+
+		_, err := r.db.Exec(query, userID, profile.PhoneNumber)
+
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeUserProfile",
+			).Errorf("Ошибка при изменении телефона пользователя: %s", err.Error())
+			return err
+		}
 	}
 
 	return nil

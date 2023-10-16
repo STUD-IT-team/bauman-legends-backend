@@ -213,16 +213,18 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		return nil, errors.New("session not found")
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
-	if err != nil {
-		log.WithField(
-			"origin.function", "ChangeProfile",
-		).Errorf("Не удалось создать хэш пароля пользователя: %s", err.Error())
-		return nil, err
+	if req.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeProfile",
+			).Errorf("Не удалось создать хэш пароля пользователя: %s", err.Error())
+			return nil, err
+		}
+		req.Password = string(hash)
 	}
-	req.Password = string(hash)
 
-	err = s.Repository.ChangeUserProfile(session.UserID, mapper.MakeChangeProfileRequest(req))
+	err := s.Repository.ChangeUserProfile(session.UserID, mapper.MakeChangeProfileRequest(req))
 
 	if err != nil {
 		log.WithField(
