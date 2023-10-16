@@ -6,6 +6,6 @@ type TaskTypes struct {
 
 type TaskType struct {
 	Name     string `json:"name"`
-	ID       string `json:"id"`
+	ID       int32  `json:"id"`
 	IsActive bool   `json:"is_active"`
 }

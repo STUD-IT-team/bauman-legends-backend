@@ -5,6 +5,7 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
+	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -49,6 +50,11 @@ func main() {
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.ChangeProfile)
 
+	r.Get("/api/task/types", handler.GetTaskTypes)
+	//r.Post("/api/task/take", handler.TakeTask)
+	//r.Get("/api/task", handler.GetTask)
+
+	//r.Post("/api/task/answer", handler.Answer)
 	log.WithField(
 		"origin.function", "main",
 	).Info(

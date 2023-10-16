@@ -23,11 +23,15 @@ create table "team" (
 );
 
 create table "role" (
-	id		int		generated always as identity,
+	id		int		GENERATED ALWAYS AS IDENTITY,
 	title	text	not null,
 
 	primary key (id)
 );
+
+-- insert into "role" (title) values ('Участник');
+-- insert into "role" (title) values ('Зам');
+-- insert into "role" (title) values ('Капитан');
 
 create table "user" (
     id		        uuid	not null	default uuid_generate_v4(),
@@ -54,11 +58,16 @@ create table "user" (
 );
 
 create table "task_type" (
-	id		int	    generated always as identity,
+	id		int	     not null serial,
 	title	text	not null,
 
 	primary key (id)
 );
+insert into "task_type" (title) values ("текст");
+insert into "task_type" (title) values ("текст + фото");
+insert into "task_type" (title) values ("фото");
+insert into "task_type" (title) values ("qr-code");
+insert into "task_type" (title) values ("любое другое");
 
 create table "task_difficulty" (
 	id		int		generated always as identity,

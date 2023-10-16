@@ -235,3 +235,48 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *HTTPHandler) GetTaskTypes(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+	//req := &grpc2.GetTaskTypesRequest{AccessToken: cookie.Value}
+	//req := &grpc2.GetProfileRequest{AccessToken: cookie.Value}
+	req := request.TaskTypes{
+		AccessToken: cookie.Value,
+	}
+
+	tasks, err := h.Api.GetTaskTypes(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "http.handler.GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(tasks)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf(
+			"Ошибка при отправке профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+}

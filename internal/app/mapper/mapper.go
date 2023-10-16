@@ -85,3 +85,20 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 		PhoneNumber: req.PhoneNumber,
 	}
 }
+
+func MakeGrpcRequestTaksType(req *request.TaskTypes) *grpc2.GetTaskTypesRequest {
+	return &grpc2.GetTaskTypesRequest{AccessToken: req.AccessToken}
+
+}
+
+func MakeGetTaskTypesResponse(res *grpc2.TaskTypesResponse) *response.TaskTypes {
+	var httpTaskTypes []response.TaskType
+
+	for _, taskType := range res.TaskTypes {
+		var httpTaskType response.TaskType
+		httpTaskType.ID = taskType.Id
+		httpTaskType.Name = taskType.Name
+		httpTaskTypes = append(httpTaskTypes, httpTaskType)
+	}
+	return &response.TaskTypes{TaskTypes: httpTaskTypes}
+}

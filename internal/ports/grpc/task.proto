@@ -5,11 +5,13 @@ package task;
 option go_package = "./internal/ports/grpc";
 
 service Task {
-  rpc GetTaskTypes(EmptyRequest) returns (TaskTypesResponse) {}
+  rpc GetTaskTypes(GetTaskTypesRequest) returns (TaskTypesResponse) {}
 }
 
-message EmptyRequest {}
-message EmptyResponse {}
+message GetTaskTypesRequest {
+  string accessToken = 1;
+  string teamID = 2;
+}
 
 message TaskTypesResponse {
   message TaskTypes {

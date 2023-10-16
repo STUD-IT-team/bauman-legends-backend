@@ -23,7 +23,13 @@ func NewTaskStorage(dataSource string) (repository.IUserAuthStorage, error) {
 func (r *TaskStorage) GetTaskTypes() (*response.TaskTypes, error) {
 	var types []response.TaskType
 
-	query := `select title, id from task_type`
+	query := `select team_task.team_id, task.type_id, count(task.type_id) 
+			  from team_task left join task on team_task.task_id = task.id 
+			  where team_id=$1 group by team_id, task.type_id;`
+
+	r.db.QueryRow(query, teamID)
 
 	r.db.Select(&types, query)
+	return nil, nil
+
 }

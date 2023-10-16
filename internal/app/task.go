@@ -17,6 +17,7 @@ func NewTask(r repository.ITaskStorage) *Task {
 	}
 }
 
-func (t *Task) GetTaskTypes(_ context.Context, _ *grpc2.EmptyRequest) (*grpc2.TaskTypesResponse, error) {
-
+func (t *Task) GetTaskTypes(_ context.Context, _ *grpc2.GetTaskTypesRequest) (*grpc2.TaskTypesResponse, error) {
+	t.Repository.GetTaskTypes()
+	return nil, nil
 }

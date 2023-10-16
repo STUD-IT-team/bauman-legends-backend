@@ -13,6 +13,7 @@ import (
 
 type Api struct {
 	AuthClient grpc2.AuthClient
+	TaskClient grpc2.TaskClient
 }
 
 func NewApi(conn grpc.ClientConnInterface) *Api {
@@ -119,4 +120,22 @@ func (a *Api) ChangeProfile(req *grpc2.ChangeProfileRequest) error {
 	}
 
 	return nil
+}
+
+func (a *Api) GetTaskTypes(req *request.TaskTypes) (*response.TaskTypes, error) {
+	grpcReq := mapper.MakeGrpcRequestTaksType(req)
+	profile, err := a.AuthClient.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.AccessToken})
+
+	tasks, err := a.TaskClient.GetTaskTypes(context.Background(), grpcReq)
+	if err != nil {
+		log.WithField(
+			"origin.function", "Api.GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении списка заданий: %s",
+			err.Error(),
+		)
+		return nil, err
+	}
+
+	return mapper.MakeGetTaskTypesResponse(tasks), nil
 }
