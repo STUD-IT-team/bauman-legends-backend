@@ -317,7 +317,7 @@ func (r *UserAuthStorage) CheckMembership(userId string, teamID string) (bool, e
 
 func (r *UserAuthStorage) CheckUserExist(userID string) (bool, error) {
 	var exist bool
-	query := `select exists (select id from "user" whereid = $1)`
+	query := `select exists (select id from "user" where id = $1)`
 	err := r.db.Get(&exist, query, userID)
 	if err != nil {
 		log.WithField(
