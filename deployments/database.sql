@@ -1,6 +1,6 @@
-set search_path = "public";
-
 create extension if not exists "uuid-ossp";
+
+create extension if not exists "pgcrypto";
 
 drop table if exists "user";
 drop table if exists "team_task";
