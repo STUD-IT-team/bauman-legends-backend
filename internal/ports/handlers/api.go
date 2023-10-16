@@ -301,7 +301,7 @@ func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "ChangeTeam",
+			"origin.function", "UpdateTeam",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -314,7 +314,7 @@ func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.WithField(
-			"origin.function", "ChangeTeam",
+			"origin.function", "UpdateTeam",
 		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
@@ -328,7 +328,7 @@ func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
+			"origin.function", "UpdateTeam",
 		).Errorf(
 			"Ошибка регистрации команды: %s",
 			err.Error(),
@@ -349,7 +349,7 @@ func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {

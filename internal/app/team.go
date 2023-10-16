@@ -60,28 +60,26 @@ func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.Register
 
 }
 
-func (t *TeamService) UpdateTeam(req *request.ChangeTeam) (response.RegisterTeam, error) {
+func (t *TeamService) UpdateTeam(req *request.ChangeTeam) (response.UpdateTeam, error) {
 	//test valid data in req
 
 	res, err := t.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
 	if err != nil {
-		return response.RegisterTeam{}, err
+		return response.UpdateTeam{}, err
 	}
 	if !res.Valid {
-		return response.RegisterTeam{}, errors.New("valid check error")
+		return response.UpdateTeam{}, errors.New("valid check error")
 	}
 
-	exist, err := t.storage.CheckTeam(req.TeamName)
-
+	profile, err := t.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
 	if err != nil {
-		return response.RegisterTeam{}, err
+		return response.UpdateTeam{}, err
 	}
-
-	if exist {
-		return response.RegisterTeam{TeamID: req.TeamName}, nil
-	} else {
-		return response.RegisterTeam{}, errors.New("team does not exist")
+	err = t.storage.UpdateTeam(profile.TeamID, req.TeamName)
+	if err != nil {
+		return response.UpdateTeam{}, err
 	}
+	return response.UpdateTeam{TeamName: req.TeamName}, nil
 }
 
 func (t *TeamService) GetTeam(req *request.GetTeam) (*response.GetTeam, error) {

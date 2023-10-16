@@ -8,7 +8,7 @@ type TeamStorage interface {
 	CreateTeam(teamName string) (TeamID string, err error)
 	CheckTeam(teamName string) (exists bool, err error)
 
-	UpdateTeam(teamName string) error
+	UpdateTeam(teamID string, teamName string) error
 
 	GetTeam(teamID string) (domain.Team, error)
 

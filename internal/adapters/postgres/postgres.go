@@ -208,21 +208,22 @@ func (r *UserAuthStorage) CreateTeam(teamName string) (string, error) {
 	return teamID, nil
 }
 
-func (r *UserAuthStorage) UpdateTeam(teamName string) error {
+func (r *UserAuthStorage) UpdateTeam(teamID string, teamName string) error {
+	log.Infof("teamID and TeamName in UpdateTeam: %s, %s", teamID, teamName)
 	query := `	
 		update "team"
-	    set title=$2
-	    where title = $1;
+	    set title=$1
+	    where id = $2;
 `
 	_, err := r.db.Exec(query,
 		teamName,
-		teamName,
+		teamID,
 	)
 
 	if err != nil {
 		log.WithField(
 			"origin.function", "ChangeUserProfile",
-		).Errorf("Ошибка при изменении данных пользователя: %s", err.Error())
+		).Errorf("Ошибка при изменении данных команды: %s", err.Error())
 		return err
 	}
 
