@@ -11,6 +11,7 @@ service Auth {
     rpc Check(CheckRequest) returns (CheckResponse) {}
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
     rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
+
 }
 
 message RegisterRequest {
@@ -54,6 +55,7 @@ message CheckRequest {
 
 message CheckResponse {
     bool valid = 1;
+    string userID = 2;
 }
 
 message GetProfileRequest {
@@ -67,6 +69,8 @@ message GetProfileResponse {
     string telegram = 4;
     string vk = 5;
     string phoneNumber = 6;
+    string teamID = 7;
+    string id = 8;
 }
 
 message ChangeProfileRequest {
@@ -79,3 +83,7 @@ message ChangeProfileRequest {
     string vk = 7;
     string phoneNumber = 8;
 }
+
+
+
+

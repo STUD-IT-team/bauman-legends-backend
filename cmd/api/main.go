@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
+	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -38,9 +40,21 @@ func main() {
 			)
 		}
 	}(conn)
-
+	startPGString := "postgresql://postgres:7dgvJVDJvh254aqOpfd@bl-database:5432/postgres"
+	//fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN"))
+	repo, err := postgres.NewTeamStorage(startPGString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api)
+	teams := app.NewTeamService(conn, repo)
+	handler := handlers.NewHTTPHandler(api, teams)
 
 	r := chi.NewRouter()
 	r.Post("/api/user", handler.Register)
@@ -48,6 +62,15 @@ func main() {
 	r.Delete("/api/user/session", handler.Logout)
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.ChangeProfile)
+
+	r.Post("/api/team", handler.RegisterTeam)
+	r.Put("/api/team", handler.ChangeTeam)
+	r.Get("/api/team", handler.GetTeam)
+	r.Delete("/api/team", handler.DeleteTeam)
+
+	r.Post("/api/team/invite", handler.Invite)
+	r.Delete("/api/team/member", handler.DeleteMember)
+	r.Put("/api/team/member", handler.UpdateMember)
 
 	log.WithField(
 		"origin.function", "main",
