@@ -21,4 +21,9 @@ type TeamStorage interface {
 	UpdateMember(UserID string, RoleID int) error
 
 	SetTeamID(userID string, teamID string) error
+
+	CheckMembership(userId string, teamID string) (bool, error)
+
+	CheckUserExist(userID string) (bool, error)
+
 }

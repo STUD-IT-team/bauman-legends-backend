@@ -270,7 +270,9 @@ func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
 	return nil
 }
 func (r *UserAuthStorage) InviteToTeam(UserID string, TeamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id=$1, role_id = 0 where id = $2;`, TeamID, UserID)
+
+	_, err := r.db.Exec(`update "user" set team_id=$1, role_id = 1 where id = $2;`, TeamID, UserID)
+
 	if err != nil {
 		return err
 	}
@@ -294,6 +296,36 @@ func (r *UserAuthStorage) UpdateMember(UserID string, RoleID int) error {
 }
 
 func (r *UserAuthStorage) SetTeamID(UserID string, teamID string) error {
-	_, err := r.db.Exec(`update "user" set team_id = $1, role_id = 2 where id = $2;`, teamID, UserID)
+
+	_, err := r.db.Exec(`update "user" set team_id = $1, role_id = 3 where id = $2;`, teamID, UserID)
 	return err
+}
+
+func (r *UserAuthStorage) CheckMembership(userId string, teamID string) (bool, error) {
+	var exists bool
+	query := `select exists (select id from "user" where team_id = $1 and id = $2)`
+	err := r.db.Get(&exists, query, teamID, userId)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckMembership",
+		).Errorf("Ошибка при проверке существования участника команды: %s", err.Error())
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *UserAuthStorage) CheckUserExist(userID string) (bool, error) {
+	var exist bool
+	query := `select exists (select id from "user" whereid = $1)`
+	err := r.db.Get(&exist, query, userID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckMembership",
+		).Errorf("Ошибка при проверке существования участника в бд: %s", err.Error())
+		return false, err
+	}
+
+	return exist, nil
+
 }

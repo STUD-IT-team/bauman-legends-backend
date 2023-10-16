@@ -137,8 +137,22 @@ func (t *TeamService) InviteToTeam(req *request.InviteToTeam) error {
 	if !res.Valid {
 		return errors.New("valid check error")
 	}
-
+	exist, err := t.storage.CheckUserExist(req.UserID)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return errors.New("user does not exist in db")
+	}
 	profile, err := t.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	exists, err := t.storage.CheckMembership(req.UserID, profile.TeamID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New("userId already exists on this team")
+	}
+
 	err = t.storage.InviteToTeam(req.UserID, profile.TeamID)
 
 	if err != nil {
