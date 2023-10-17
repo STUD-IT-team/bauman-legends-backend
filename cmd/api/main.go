@@ -72,6 +72,10 @@ func main() {
 	r.Delete("/api/team/member", handler.DeleteMember)
 	r.Put("/api/team/member", handler.UpdateMember)
 
+	r.Get("/api/task/types", handler.GetTaskTypes)
+	r.Post("/api/task/take", handler.TakeTask)
+	r.Get("/api/task", handler.GetTask)
+	r.Post("/api/task/answer", handler.Answer)
 	log.WithField(
 		"origin.function", "main",
 	).Info(

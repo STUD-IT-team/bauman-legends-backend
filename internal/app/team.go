@@ -31,7 +31,6 @@ func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.Register
 	if err != nil {
 		return response.RegisterTeam{}, err
 	}
-	log.Info(res.Valid, "check")
 	if !res.Valid {
 		return response.RegisterTeam{}, errors.New("valid check error")
 	}

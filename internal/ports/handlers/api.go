@@ -15,6 +15,7 @@ import (
 type HTTPHandler struct {
 	Api   *app.Api
 	Teams *app.TeamService
+	Tasks *app.TaskService
 }
 
 func NewHTTPHandler(api *app.Api, team *app.TeamService) *HTTPHandler {
@@ -367,17 +368,6 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 
 	var req request.GetTeam
 
-	//if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-	//	log.WithField(
-	//		"origin.function", "GetTeam",
-	//	).Errorf(
-	//		"Ошибка чтения запроса: %s",
-	//		err.Error(),
-	//	)
-	//	http.Error(w, "bad request", http.StatusBadRequest)
-	//	return
-	//}
-
 	req.Session = cookie.Value
 
 	res, err := h.Teams.GetTeam(&req)
@@ -562,5 +552,126 @@ func (h *HTTPHandler) UpdateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+
+}
+
+func (h *HTTPHandler) GetTaskTypes(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetTaskTypes
+
+	req.AccessToken = cookie.Value
+
+	res, err := h.Tasks.GetTaskTypes(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при отправке профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) TakeTask(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.TakeTask
+
+	req.AccessToken = cookie.Value
+
+	err = h.Tasks.TakeTask(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	//todo возможен проёб
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) GetTask(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetTask
+
+	req.AccessToken = cookie.Value
+
+	res, err := h.Tasks.GetTask(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при отправке профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+func (h *HTTPHandler) Answer(w http.ResponseWriter, r *http.Request) {
 
 }
