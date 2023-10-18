@@ -137,6 +137,8 @@ func (s *TaskService) GetTask(req *request.GetTask) (*response.GetTask, error) {
 		return nil, fmt.Errorf("can't auth.GetProfile on GetTask: %w", err)
 	}
 
+	log.Infof("profile.teamID = %v on TaskService.GetTask", profile.TeamID)
+
 	checkTask, err := s.storage.CheckActiveTaskExist(profile.TeamID)
 	if err != nil {
 		return nil, fmt.Errorf("can't storage.CheckActiveTaskExist on GetTask: %w", err)
