@@ -12,6 +12,8 @@ type TeamStorage interface {
 
 	GetTeam(teamID string) (domain.Team, error)
 
+	GetTeamPoints(teamID string) (int, error)
+
 	DeleteTeam(TeamID string) error
 
 	InviteToTeam(UserID string, TeamID string) error
@@ -25,5 +27,4 @@ type TeamStorage interface {
 	CheckMembership(userId string, teamID string) (bool, error)
 
 	CheckUserExist(userID string) (bool, error)
-
 }

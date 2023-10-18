@@ -3,20 +3,12 @@ package response
 import "time"
 
 type GetTask struct {
-	Title        string
-	Text         string
-	TypeId       int
-	TypeName     string
-	MaxPoints    int
-	MinPoints    int
-	Duration     time.Duration
-	TimeStarted  time.Time
-	HintsTaken   []Hints
-	answerTypeId int
-}
-
-type Hints struct {
-	Title         string
-	Text          string
-	PointsPenalty int
+	Title        string    `json:"title"`
+	Text         string    `json:"text"`
+	TypeId       int       `json:"typeId"`
+	TypeName     string    `json:"typeName"`
+	MaxPoints    int       `json:"maxPoints"`
+	MinPoints    int       `json:"minPoints"`
+	TimeStarted  time.Time `json:"timeStarted"`
+	AnswerTypeId int       `json:"answerTypeId"`
 }

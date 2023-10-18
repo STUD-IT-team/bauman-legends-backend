@@ -1,7 +1,7 @@
 package request
 
 type Answer struct {
-	text        string
-	imageUrl    string
+	Text        *string
+	ImageUrl    *string
 	AccessToken string
 }

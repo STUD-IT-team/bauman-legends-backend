@@ -19,8 +19,8 @@ type TaskService struct {
 	auth    grpc2.AuthClient
 }
 
-func NewTaskService(conn grpc.ClientConnInterface, r repository.TeamStorage) *TeamService {
-	return &TeamService{
+func NewTaskService(conn grpc.ClientConnInterface, r repository.TaskStorage) *TaskService {
+	return &TaskService{
 		storage: r,
 		auth:    grpc2.NewAuthClient(conn),
 	}
@@ -154,12 +154,93 @@ func (s *TaskService) GetTask(req *request.GetTask) (*response.GetTask, error) {
 	}
 	task.TypeName, err = s.storage.GetTaskTypeName(taskID)
 
-	if task.StartedTime.Add(task.TimeLimit).After(time.Now()) {
-		err = s.storage.SetActiveTaskExpired(taskID, profile.TeamID)
-		if err != nil {
-			return nil, err
-		}
+	return mapper.MakeGetTaskResponse(task), nil
+}
+
+func (s *TaskService) Answer(req *request.Answer) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return fmt.Errorf("can't auth.Check on Answer: %w", err)
+	}
+	if !res.Valid {
+		return errors.New("valid check error")
 	}
 
-	return mapper.MakeGetTaskResponse(task), nil
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return fmt.Errorf("can't auth.GetProfile on Answer: %w", err)
+	}
+	taskID, err := s.storage.GetActiveTaskID(profile.TeamID)
+	if err != nil {
+		return err
+	}
+	//task, err := s.storage.GetTask(taskID)
+
+	if req.Text == nil {
+		err := s.storage.SetAnswerText(*req.Text, profile.TeamID, taskID)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := s.storage.SetAnswerImageBase64(*req.ImageUrl, profile.TeamID, taskID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
+
+func (s *TaskService) UploadPhoto(req request.UploadPhoto) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return fmt.Errorf("can't auth.Check on UploadPhoto: %w", err)
+	}
+	if !res.Valid {
+		return errors.New("valid check error")
+	}
+
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return fmt.Errorf("can't auth.GetProfile on Answer: %w", err)
+	}
+	taskID, err := s.storage.GetActiveTaskID(profile.TeamID)
+	if err != nil {
+		return err
+	}
+	err = s.storage.SetAnswerImageBase64(req.Base64Photo, profile.TeamID, taskID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *TaskService) GetAnswers(req *request.GetAnswers) (*response.GetAnswers, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return nil, fmt.Errorf("can't auth.Check on GetAnswers: %w", err)
+	}
+	if !res.Valid {
+		return nil, errors.New("valid check error")
+	}
+
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.AccessToken})
+	if err != nil {
+		return nil, fmt.Errorf("can't auth.GetProfile on GetAnswers: %w", err)
+	}
+
+	dbAnswers, err := s.storage.GetAnswers(profile.TeamID)
+
+	var httpAnswers response.GetAnswers
+
+	for _, answ := range dbAnswers {
+		var httpAnswer response.Answer
+
+		httpAnswer.AnswerId = answ.ID
+		httpAnswers.Answers = append(httpAnswers.Answers, httpAnswer)
+
+	}
+
+	return &httpAnswers, nil
+
 }

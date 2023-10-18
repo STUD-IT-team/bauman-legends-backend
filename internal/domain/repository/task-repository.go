@@ -18,5 +18,7 @@ type TaskStorage interface {
 	GetTaskStartedTime(taskID string, TeamID string) (time.Time, error)
 	GetTaskTypeName(taskID string) (string, error)
 	SetActiveTaskExpired(taskID string, TeamID string) error
-	SetAnswer(answer string) error
+	SetAnswerText(text string, teamID string, taskID string) error
+	SetAnswerImageBase64(url string, teamID string, taskID string) error
+	GetAnswers(teamID string) ([]domain.Answer, error)
 }

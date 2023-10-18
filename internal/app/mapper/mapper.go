@@ -130,14 +130,13 @@ func MakeTaskTypesResponse(in domain.TaskTypes) *response.GetTaskTypes {
 
 func MakeGetTaskResponse(in domain.Task) *response.GetTask {
 	return &response.GetTask{
-		Title:       in.Title,
-		Text:        in.Description,
-		TypeId:      in.TypeID,
-		TypeName:    in.TypeName,
-		MaxPoints:   in.MaxPoints,
-		MinPoints:   in.MinPoints,
-		Duration:    in.TimeLimit,
-		TimeStarted: in.StartedTime,
-		HintsTaken:  make([]response.Hints, 0),
+		Title:        in.Title,
+		Text:         in.Description,
+		TypeId:       in.TypeID,
+		TypeName:     in.TypeName,
+		MaxPoints:    in.MaxPoints,
+		MinPoints:    in.MinPoints,
+		TimeStarted:  in.StartedTime,
+		AnswerTypeId: in.AnswerTypeID,
 	}
 }
