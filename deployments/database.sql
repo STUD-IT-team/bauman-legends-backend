@@ -239,6 +239,10 @@ a5ea392d-d4f6-4c87-a04e-002e252cfb6c	Продолжение
 \.
 
 
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
 COPY public."user" (id, password, phone_number, email, email_confirmed, telegram, vk, "group", name, team_id, role_id, is_admin) FROM stdin;
 75575339-4aa4-47aa-ac19-5aeb832ce636	$2a$08$gqAHaHVy3Z9kxyjO4d/tR.amvwpEpOj1dw.pavc8j8vV5zcpQCcCO	89167374550	roman_boyko.48@mail.ru	f	sourr_cream	weird418	ИУ9-12Б	Бойко Роман Александрович	\N	\N	f
 13e04bc9-c1b7-489d-a3c4-180f86fc02dd	$2a$08$3gu3VAd5zL0d5BfMWnn8RewukuOp6LsrcCYyRxlRBTPhuekoqHFIm	89295650842	iamyuraleniviy@gmail.com	f	yuraleniviy	https://vk.com/yivinelaruy	ФН3-12Б	Юрков Даниил Денисович	\N	\N	f
