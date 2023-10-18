@@ -17,6 +17,7 @@ func main() {
 	settings.LogSetup()
 
 	sessionCache := cache.NewSessionCache()
+	log.Info(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
 	repo, err := postgres.NewUserAuthStorage(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
 	if err != nil {
 		log.WithField(

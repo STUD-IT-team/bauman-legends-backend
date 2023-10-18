@@ -1,6 +1,6 @@
-set search_path = "public";
-
 create extension if not exists "uuid-ossp";
+
+create extension if not exists "pgcrypto";
 
 drop table if exists "user";
 drop table if exists "team_task";
@@ -33,7 +33,7 @@ create table "user" (
     id		        uuid	not null	default uuid_generate_v4(),
 	password 	    text    not null,
 	phone_number	text	not null,
-	email		    text	not null,
+	email		    text	not null    unique,
 	email_confirmed	boolean not null    default false,
 	telegram	    text	not null,
 	vk		        text	not null,

@@ -171,8 +171,8 @@ func (s *Auth) Logout(_ context.Context, req *grpc2.LogoutRequest) (*grpc2.Empty
 
 func (s *Auth) Check(_ context.Context, req *grpc2.CheckRequest) (*grpc2.CheckResponse, error) {
 	accessToken := req.GetAccessToken()
+	log.Info("accessToken: ", accessToken)
 	record := s.SessionCache.Find(accessToken)
-
 	if record == nil ||
 		record.ExpireAt.Before(time.Now()) {
 		return &grpc2.CheckResponse{
@@ -181,12 +181,14 @@ func (s *Auth) Check(_ context.Context, req *grpc2.CheckRequest) (*grpc2.CheckRe
 	}
 
 	return &grpc2.CheckResponse{
-		Valid: true,
+		Valid:  true,
+		UserID: record.UserID,
 	}, nil
 }
 
 func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grpc2.GetProfileResponse, error) {
 	accessToken := req.GetAccessToken()
+	log.Infof("accessToken: %s", accessToken)
 	session := s.SessionCache.Find(accessToken)
 
 	if session == nil {
@@ -197,7 +199,7 @@ func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grp
 	}
 
 	profile, err := s.Repository.GetUserProfile(session.UserID)
-
+	log.Infof("service profile: %+v", profile)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetProfile",
@@ -219,16 +221,18 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		return nil, ErrSessionNotFound
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
-	if err != nil {
-		log.WithField(
-			"origin.function", "ChangeProfile",
-		).Errorf("Не удалось создать хэш пароля пользователя: %s", err.Error())
-		return nil, err
+	if req.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
+		if err != nil {
+			log.WithField(
+				"origin.function", "ChangeProfile",
+			).Errorf("Не удалось создать хэш пароля пользователя: %s", err.Error())
+			return nil, err
+		}
+		req.Password = string(hash)
 	}
-	req.Password = string(hash)
 
-	err = s.Repository.ChangeUserProfile(session.UserID, mapper.MakeChangeProfileRequest(req))
+	err := s.Repository.ChangeUserProfile(session.UserID, mapper.MakeChangeProfileRequest(req))
 
 	if err != nil {
 		log.WithField(
