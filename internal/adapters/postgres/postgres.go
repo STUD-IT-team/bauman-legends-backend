@@ -142,14 +142,15 @@ func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, 
 					vk, 
 					phone_number, 
 					email, 
-					team_id
+					team_id,
+					is_admin
 				from "user" 
 					where id = $1;
 `
 	var profile response.UserProfile
 	var s sql.NullString
 	res := r.db.QueryRow(query, userID)
-	err := res.Scan(&profile.Name, &profile.Group, &profile.Telegram, &profile.VK, &profile.PhoneNumber, &profile.Email, &s)
+	err := res.Scan(&profile.Name, &profile.Group, &profile.Telegram, &profile.VK, &profile.PhoneNumber, &profile.Email, &s, &profile.IsAdmin)
 	if s.Valid {
 		profile.TeamID = s.String
 	} else {

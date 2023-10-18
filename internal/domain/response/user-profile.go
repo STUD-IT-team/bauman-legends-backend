@@ -9,4 +9,5 @@ type UserProfile struct {
 	PhoneNumber string `json:"phone_number" db:"phone_number"`
 	Email       string `json:"email" db:"email"`
 	TeamID      string `json:"team_id" db:"team_id"`
+	IsAdmin     bool   `json:"is_admin" db:"is_admin"`
 }

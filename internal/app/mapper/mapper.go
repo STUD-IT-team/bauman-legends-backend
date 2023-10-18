@@ -63,6 +63,7 @@ func MakeGrpcResponseProfile(res *response.UserProfile) *grpc2.GetProfileRespons
 		Vk:          res.VK,
 		PhoneNumber: res.PhoneNumber,
 		TeamID:      res.TeamID,
+		IsAdmin:     res.IsAdmin,
 	}
 }
 
@@ -76,6 +77,7 @@ func MakeProfileResponse(res *grpc2.GetProfileResponse) *response.UserProfile {
 		VK:          res.Vk,
 		PhoneNumber: res.PhoneNumber,
 		TeamID:      res.TeamID,
+		IsAdmin:     res.IsAdmin,
 	}
 }
 

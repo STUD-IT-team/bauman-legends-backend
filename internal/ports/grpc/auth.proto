@@ -72,6 +72,7 @@ message GetProfileResponse {
     string phoneNumber = 6;
     string teamID = 7;
     string id = 8;
+    bool isAdmin = 9;
 }
 
 message ChangeProfileRequest {
