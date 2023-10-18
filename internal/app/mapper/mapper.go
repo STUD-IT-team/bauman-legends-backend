@@ -148,3 +148,32 @@ func MakeGetTaskResponse(in domain.Task) *response.GetTask {
 		AnswerTypeId: in.AnswerTypeID,
 	}
 }
+
+func MakeTaskTypesResponse(in domain.TaskTypes) response.GetTaskTypes {
+	out := make([]response.TaskType, 0, len(in))
+
+	for _, taskType := range in {
+		out = append(out, response.TaskType{
+			Name:     taskType.Title,
+			ID:       taskType.ID,
+			IsActive: taskType.IsActive,
+		})
+	}
+
+	return response.GetTaskTypes{
+		TaskTypes: out,
+	}
+}
+
+func MakeGetTaskResponse(in domain.Task) *response.GetTask {
+	return &response.GetTask{
+		Title:        in.Title,
+		Text:         in.Description,
+		TypeId:       in.TypeID,
+		TypeName:     in.TypeName,
+		MaxPoints:    in.MaxPoints,
+		MinPoints:    in.MinPoints,
+		TimeStarted:  in.StartedTime,
+		AnswerTypeId: in.AnswerTypeID,
+	}
+}
