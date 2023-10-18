@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+
+	"net/http"
+	"time"
 	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
+	"google.golang.org/grpc/status"
 )
 
 type HTTPHandler struct {
@@ -42,13 +44,23 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Register(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Register",
-		).Errorf(
-			"Ошибка регистрации пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Convert(err).Message() == app.ErrUserAlreadyExists.Error() {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Пользователь уже существует: %s",
+				err.Error(),
+			)
+			http.Error(w, "user exists", http.StatusConflict)
+		} else {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Ошибка регистрации пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -91,13 +103,23 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Login(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Login",
-		).Errorf(
-			"Ошибка входа: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Convert(err).Message() == app.ErrUserNotFound.Error() || status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Пользователь не найден: %s",
+				err.Error(),
+			)
+			http.Error(w, "user does not exist", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Ошибка входа: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -246,32 +268,91 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+
+func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
-		).Errorf(
+			"origin.function", "ChangePassword",
+      
+      		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
 		)
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
-
-	var req request.RegisterTeam
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  
+  
+	var reqBody request.ChangePassword
+	if err = json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
-		).Errorf(
+			"origin.function", "ChangePassword",
+      
+      		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
 		)
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+  
+  	req := &grpc2.ChangePasswordRequest{
+		AccessToken: cookie.Value,
+		OldPassword: reqBody.OldPassword,
+		NewPassword: reqBody.NewPassword,
+	}
 
+	err = h.Api.ChangePassword(req)
+
+	if err != nil {
+		if status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Текущий пароль не совпадает с введенным: %s",
+				err.Error(),
+			)
+			http.Error(w, "not authorized", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Ошибка при изменении пароля пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+}
+
+func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+      		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+  
+	var req request.RegisterTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+      
+      		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
 	req.Session = cookie.Value
 	res, err := h.Teams.RegisterTeam(&req)
 	fmt.Println(res.TeamID)
@@ -554,6 +635,251 @@ func (h *HTTPHandler) UpdateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) GetTaskTypes(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetTaskTypes
+
+	req.AccessToken = cookie.Value
+
+	res, err := h.Tasks.GetTaskTypes(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при отправке профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) TakeTask(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.TakeTask
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	req.AccessToken = cookie.Value
+
+	err = h.Tasks.TakeTask(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	//todo возможен проёб
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) GetTask(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetTask
+
+	req.AccessToken = cookie.Value
+
+	res, err := h.Tasks.GetTask(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при отправке профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *HTTPHandler) Answer(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "Answer",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.Answer
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "Answer",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.AccessToken = cookie.Value
+
+	err = h.Tasks.Answer(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "Answer",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	//todo возможен проёб
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) LoadPhoto(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "Answer",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.UploadPhoto
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "GetTaskTypes",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.AccessToken = cookie.Value
+
+	err = h.Tasks.UploadPhoto(req)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *HTTPHandler) GetAnswers(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetAnswers
+
+	req.AccessToken = cookie.Value
+
+	res, err := h.Tasks.GetAnswers(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при получении профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTask",
+		).Errorf(
+			"Ошибка при отправке профиля команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 
 }
 

@@ -2,7 +2,13 @@ package main
 
 import (
 	"fmt"
+
+	"net/http"
+	"os"
+
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
@@ -10,8 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"net/http"
-	"os"
 )
 
 func main() {
@@ -54,6 +58,7 @@ func main() {
 	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
 
+
 	connTasks, err := grpc.Dial(
 		grpcURl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -78,6 +83,8 @@ func main() {
 		}
 	}(connTasks)
 
+
+
 	repoTasks, err := postgres.NewTaskStorage(startPGString)
 	if err != nil {
 		log.WithField(
@@ -91,6 +98,7 @@ func main() {
 	tasks := app.NewTaskService(conn, repoTasks)
 	teams := app.NewTeamService(connTasks, repo)
 
+
 	handler := handlers.NewHTTPHandler(api, teams, tasks)
 
 	r := chi.NewRouter()
@@ -99,6 +107,7 @@ func main() {
 	r.Delete("/api/user/session", handler.Logout)
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.ChangeProfile)
+	r.Put("/api/user/password", handler.ChangePassword)
 
 	r.Post("/api/team", handler.RegisterTeam)
 	r.Put("/api/team", handler.ChangeTeam)
@@ -115,7 +124,9 @@ func main() {
 	r.Post("/api/task/answer", handler.Answer)
 
 	r.Post("/api/image/upload", handler.LoadPhoto)
+
 	r.Get("/api/admin/answers", handler.GetAnswers)
+
 	log.WithField(
 		"origin.function", "main",
 	).Info(

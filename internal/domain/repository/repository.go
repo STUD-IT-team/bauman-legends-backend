@@ -12,4 +12,6 @@ type IUserAuthStorage interface {
 	CheckUser(email string) (exists bool, err error)
 	GetUserProfile(userID string) (*response.UserProfile, error)
 	ChangeUserProfile(userID string, profile *request.ChangeProfile) error
+	GetUserPasswordById(userID string) (password string, err error)
+	ChangeUserPassword(userID string, passwords string) error
 }

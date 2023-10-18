@@ -3,6 +3,10 @@ package app
 import (
 	"context"
 	"errors"
+	"os"
+	"strconv"
+	"time"
+
 	cache2 "github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
@@ -12,9 +16,13 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"os"
-	"strconv"
-	"time"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user exists")
+	ErrUserNotFound      = errors.New("user does not exist")
+	ErrInvalidPassword   = errors.New("incorrect password")
+	ErrSessionNotFound   = errors.New("session not found")
 )
 
 type Auth struct {
@@ -44,7 +52,7 @@ func (s *Auth) Register(_ context.Context, req *grpc2.RegisterRequest) (*grpc2.R
 		log.WithField(
 			"origin.function", "Register",
 		).Warnf("Пользователь с логином %s уже существует", mappedReq.Email)
-		return nil, errors.New("user exists")
+		return nil, ErrUserAlreadyExists
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), 8)
@@ -102,7 +110,7 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warnf("Пользователь с логином %s не найден", req.Email)
-		return nil, errors.New("user does not exist")
+		return nil, ErrUserNotFound
 	}
 
 	hashedPassword, err := s.Repository.GetUserPassword(req.Email)
@@ -118,7 +126,7 @@ func (s *Auth) Login(_ context.Context, req *grpc2.LoginRequest) (*grpc2.LoginRe
 		log.WithField(
 			"origin.function", "Login",
 		).Warn("Неверный пароль")
-		return nil, errors.New("incorrect password")
+		return nil, ErrInvalidPassword
 	}
 
 	userID, err := s.Repository.GetUserID(req.Email)
@@ -187,7 +195,7 @@ func (s *Auth) GetProfile(_ context.Context, req *grpc2.GetProfileRequest) (*grp
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf("Сессия %s не найдена", req.AccessToken)
-		return nil, errors.New("session not found")
+		return nil, ErrSessionNotFound
 	}
 
 	profile, err := s.Repository.GetUserProfile(session.UserID)
@@ -210,7 +218,7 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		log.WithField(
 			"origin.function", "ChangeProfile",
 		).Errorf("Сессия %s не найдена", req.AccessToken)
-		return nil, errors.New("session not found")
+		return nil, ErrSessionNotFound
 	}
 
 	if req.Password != "" {
@@ -230,6 +238,54 @@ func (s *Auth) ChangeProfile(_ context.Context, req *grpc2.ChangeProfileRequest)
 		log.WithField(
 			"origin.function", "ChangeProfile",
 		).Errorf("Ошибка при изменении профиля пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	return &grpc2.EmptyResponse{}, nil
+}
+
+func (s *Auth) ChangePassword(_ context.Context, req *grpc2.ChangePasswordRequest) (*grpc2.EmptyResponse, error) {
+	accessToken := req.GetAccessToken()
+	session := s.SessionCache.Find(accessToken)
+
+	if session == nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Сессия %s не найдена", req.AccessToken)
+		return nil, ErrSessionNotFound
+	}
+
+	curHashPassword, err := s.Repository.GetUserPasswordById(session.UserID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Не удалось получить текущий пароль пользователя: %s", err.Error())
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(curHashPassword), []byte(req.OldPassword))
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Пароли не совпадают: %s", err.Error())
+		return nil, ErrInvalidPassword
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 8)
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Не удалось создать хэш нового пароля пользователя: %s", err.Error())
+		return nil, err
+	}
+	req.NewPassword = string(hash)
+
+	err = s.Repository.ChangeUserPassword(session.UserID, req.NewPassword)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf("Ошибка при изменении пароля пользователя: %s", err.Error())
 		return nil, err
 	}
 

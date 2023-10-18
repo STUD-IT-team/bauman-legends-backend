@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"errors"
+
 	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
@@ -337,16 +338,19 @@ func (r *UserAuthStorage) GetTeamPoints(teamID string) (int, error) {
 	var points sql.NullInt64
 	var res = true
 	err := r.db.QueryRow(`select SUM(task.max_points) from team_task left join task on team_task.task_id = task.id 
+
                         where team_task.team_id = $1 and result = $2`, teamID, res).Scan(&points)
 	if err != nil {
 		return 0, err
 	}
+
 
 	if !points.Valid {
 		return 0, err
 	}
 
 	return int(points.Int64), nil
+
 }
 
 func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
@@ -467,6 +471,7 @@ func (r *UserAuthStorage) GetTaskTypes(teamID string) (domain.TaskTypes, error) 
 		}
 		taskTypes = append(taskTypes, out)
 		log.Infof("%v", out)
+
 	}
 	return taskTypes, nil
 }
@@ -492,7 +497,9 @@ func (r *UserAuthStorage) GetBusyNocPlaceses() (int, error) {
 
 func (r *UserAuthStorage) GetTeamTaskAmount(taskTypeID int) (int, error) {
 	var teamAmount int
+
 	err := r.db.QueryRow(`select count(*) from team_task where task_type_id = $1`, taskTypeID).Scan(&teamAmount)
+
 	if err != nil {
 		return 0, err
 	}
@@ -501,6 +508,7 @@ func (r *UserAuthStorage) GetTeamTaskAmount(taskTypeID int) (int, error) {
 
 func (r *UserAuthStorage) GetAvailableTaskID(teamID string, taskTypeID int) ([]string, error) {
 	var taskIDs []string
+
 	var tasks []string
 	var teamsTasks []string
 	err := r.db.Select(&tasks, `select id from task where type_id = $1`, taskTypeID)
@@ -524,6 +532,7 @@ func (r *UserAuthStorage) GetAvailableTaskID(teamID string, taskTypeID int) ([]s
 		return tasks, nil
 	}
 	log.Infof("availableTasks======== %v", taskIDs)
+
 	return taskIDs, nil
 }
 
@@ -531,6 +540,7 @@ const querySetTaskToTeam = `insert into team_task`
 
 func (r *UserAuthStorage) SetTaskToTeam(taskID string, taskTypeId int, teamID string) error {
 	_, err := r.db.Exec(`insert into team_task(task_id, task_type_id, team_id) values ($1, $2, $3)`, taskID, taskTypeId, teamID)
+
 	return err
 }
 
@@ -562,6 +572,7 @@ func (r *UserAuthStorage) GetActiveTaskID(teamID string) (string, error) {
 func (r *UserAuthStorage) GetTask(taskID string) (domain.Task, error) {
 	var out domain.Task
 	err := r.db.Get(&out, `select id, title, description, type_id, 
+
        					  max_points, min_points, answer_type_id from task where id=$1`, taskID)
 	if err != nil {
 		return domain.Task{}, fmt.Errorf("can't db.get task :%w", err)
@@ -601,7 +612,7 @@ func (r *UserAuthStorage) SetAnswerText(text string, teamID string, taskID strin
 	return err
 }
 func (r *UserAuthStorage) SetAnswerImageBase64(url string, teamID string, taskID string) error {
-	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url, teamID, taskID)
+  	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url, teamID, taskID)
 	return err
 }
 
@@ -613,3 +624,34 @@ func (r *UserAuthStorage) GetAnswers(teamID string) ([]domain.Answer, error) {
 	}
 	return answers, nil
 }
+
+
+
+func (r *UserAuthStorage) GetUserPasswordById(userID string) (password string, err error) {
+	query := `select password from "user" where id=$1;`
+
+	err = r.db.Get(&password, query, userID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserPasswordById",
+		).Errorf("Ошибка при получении пароля пользователя с помощью ID: %s", err.Error())
+		return "", err
+	}
+
+	return password, nil
+}
+
+func (r *UserAuthStorage) ChangeUserPassword(userID string, newPassword string) error {
+	query := `update "user" set password=$2 where id=$1;`
+	_, err := r.db.Exec(query, userID, newPassword)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeUserPassword",
+		).Errorf("Ошибка при изменении пароля пользователя: %s", err.Error())
+		return err
+	}
+
+	return nil
+  }
+
