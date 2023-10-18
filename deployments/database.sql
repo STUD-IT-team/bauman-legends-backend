@@ -38,7 +38,7 @@ create table "user"
     id              uuid    not null default uuid_generate_v4(),
     password        text    not null,
     phone_number    text    not null,
-    email           text    not null unique,
+    email           text    not null unique, --либо искать дублирующие, либо убираем unique
     email_confirmed boolean not null default false,
     telegram        text    not null,
     vk              text    not null,
@@ -85,6 +85,7 @@ create table "team_task"
 (
     id                uuid        not null default uuid_generate_v4(),
     task_id           uuid        not null,
+    task_type_id        int        not null,
     team_id           uuid        not null,
     start_time        timestamptz not null default now(),
     additional_points int         not null default 0,
@@ -100,48 +101,10 @@ create table "team_task"
 );
 
 
-create table "secret"
-(
-    id          uuid not null default uuid_generate_v4(),
-    title       text not null,
-    description text,
-
-    primary key (id)
-);
-
-create table "answer_secret"
-(
-    id             uuid not null default uuid_generate_v4(),
-    secret_id      uuid not null,
-    answer_type_id int  not null,
-    data           text not null,
-
-    primary key (id),
-
-    foreign key (secret_id)
-        references "secret" (id),
-    foreign key (answer_type_id)
-        REFERENCES "answer_type" (id)
-);
-
-create table "team_secret"
-(
-    id         uuid not null default uuid_generate_v4(),
-    secret_id  uuid not null,
-    team_id    uuid not null,
-    start_time timestamptz   default now(),
-    end_time   timestamptz   default null,
-
-    primary key (id),
-
-    foreign key (secret_id)
-        references "secret" (id),
-    foreign key (team_id)
-        references "team" (id)
-);
-
 insert into "task_type" (title)
-values ('Данные удалены'), ('НОЦ'), ('Онлайн задачи');
+values ('Данные удалены'), ('НОЦ'), ('Онлайн задачи'), ('Видео задачи');
+
+delete from task_type where id = 1;
 
 insert into "role" (title)
 values ('Участник'), ('Заместитель'), ('Капитан');
@@ -157,7 +120,7 @@ insert into "task" ("title", "description",  "type_id", "max_points", "min_point
 
 ***
 
-*Пока вы еще не успели выступить в Большом Зале, можете попробовать записать дебют своей команды в одном из юмористических жанров, которые у нас есть в МГТУ: Стендап(RUSH Stand Up Club), КВН (Баманская лига КВН) или Импровизация (Bauman Improv) на этой небольшой сцене*.', 3, 35, 0, 4);
+*Пока вы еще не успели выступить в Большом Зале, можете попробовать записать дебют своей команды в одном из юмористических жанров, которые у нас есть в МГТУ: Стендап(RUSH Stand Up Club), КВН (Баманская лига КВН) или Импровизация (Bauman Improv) на этой небольшой сцене*.', 4, 35, 0, 4);
 insert into "task" ("title", "description",  "type_id", "max_points", "min_points", "answer_type_id") values ('**Чистая комната**', 'В МГТУ есть множество Научно-Образовательных Центров, которые занимаются исследованиями в различных сферах. Одним из самых необычных и продвинутых является **НОЦ "Функциональные микро/наносистемы"**. Этот НОЦ уникален и тем, что прямо на территории УЛК рядом с кабинетами, в которых проходят пары, они создали, так называемую **"Чистую комнату"**.
 
 Это комната в которой соблюдаются определенные условия окружающей среды, например, температура, влажность, давление и многое другое. Люди внутри находятся только в стерильных костюмах, а в случае "разгерметизации" эта комната по новой очищается и работы не проводятся там еще в течение недели, пока комната не вернется к исходному состоянию. Понаблюдать за работой в ней можно через стекло на первом этаже. Также на этом стекле есть комиксы выпускаемые Бауманкой.
@@ -194,7 +157,7 @@ insert into "task" ("title", "description",  "type_id", "max_points", "min_point
 
 ***
 
-*Ваша задача - записать на видео короткую сценку, которая закончится фразой "фатальная ошибка" на фоне любой аудитории, находящейся на том же этаже, что и кабинет человека, о котором идет речь в этой загадке. Просмотр ШМБлога поможет вам освежить в памяти имя этого человека.*', 3, 35, 0, 4);
+*Ваша задача - записать на видео короткую сценку, которая закончится фразой "фатальная ошибка" на фоне любой аудитории, находящейся на том же этаже, что и кабинет человека, о котором идет речь в этой загадке. Просмотр ШМБлога поможет вам освежить в памяти имя этого человека.*', 4, 35, 0, 4);
 insert into "task" ("title", "description",  "type_id", "max_points", "min_points", "answer_type_id") values ('**Что-то новенькое**', '**Сегодня МГТУ им. Н.Э. Баумана расширяет свою площадь за счет строительства новых корпусов**.
 
 Этим процессом можно полюбоваться на макете, расположенном на "Красной площади". Однако с недавнего времени в главном здании нашего Университета есть еще одно место в южном крыле, в котором вы можете узнать о новых кампусах.
