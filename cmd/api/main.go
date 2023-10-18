@@ -16,9 +16,9 @@ import (
 
 func main() {
 	settings.LogSetup()
-
+	grpcURl := fmt.Sprintf("%s:%s", os.Getenv("AUTH_DN"), os.Getenv("AUTH_PORT"))
 	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%s", os.Getenv("AUTH_DN"), os.Getenv("AUTH_PORT")),
+		grpcURl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.WithField(
@@ -53,7 +53,30 @@ func main() {
 	}
 	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
-	teams := app.NewTeamService(conn, repo)
+
+	connTasks, err := grpc.Dial(
+		grpcURl,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с сервисом регистрации и авторизации: %s",
+			err.Error(),
+		)
+	}
+
+	defer func(conn *grpc.ClientConn) {
+		err = conn.Close()
+		if err != nil {
+			log.WithField(
+				"origin.function", "main",
+			).Errorf(
+				"Не удалось закрыть соединение с сервером регистрации и авторизации: %s",
+				err.Error(),
+			)
+		}
+	}(connTasks)
 
 	repoTasks, err := postgres.NewTaskStorage(startPGString)
 	if err != nil {
@@ -66,6 +89,7 @@ func main() {
 	}
 
 	tasks := app.NewTaskService(conn, repoTasks)
+	teams := app.NewTeamService(connTasks, repo)
 
 	handler := handlers.NewHTTPHandler(api, teams, tasks)
 
@@ -91,7 +115,7 @@ func main() {
 	r.Post("/api/task/answer", handler.Answer)
 
 	r.Post("/api/image/upload", handler.LoadPhoto)
-	r.Get("/api/task/answers", handler.GetAnswers)
+	r.Get("/api/admin/answers", handler.GetAnswers)
 	log.WithField(
 		"origin.function", "main",
 	).Info(

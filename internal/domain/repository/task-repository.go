@@ -11,7 +11,7 @@ type TaskStorage interface {
 	GetBusyNocPlaceses() (int, error)
 	GetAvailableTaskID(teamID string, taskTypeID int) ([]string, error)
 	GetTeamTaskAmount(taskTypeID int) (int, error)
-	SetTaskToTeam(taskID string, teamID string) error
+	SetTaskToTeam(taskID string, taskTypeId int, teamID string) error
 	CheckActiveTaskExist(teamID string) (bool, error)
 	GetActiveTaskID(teamID string) (string, error)
 	GetTask(taskID string) (domain.Task, error)

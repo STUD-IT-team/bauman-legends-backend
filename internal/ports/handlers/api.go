@@ -20,7 +20,9 @@ type HTTPHandler struct {
 
 func NewHTTPHandler(api *app.Api, team *app.TeamService, tasks *app.TaskService) *HTTPHandler {
 	return &HTTPHandler{Api: api,
-		Teams: team}
+		Teams: team,
+		Tasks: tasks,
+	}
 }
 
 func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -417,7 +419,7 @@ func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 		log.WithField(
 			"origin.function", "DeleteTeam",
 		).Errorf(
-			"Ошибка при получении профиля команды: %s",
+			"Ошибка при удалении профиля команды: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -571,14 +573,14 @@ func (h *HTTPHandler) GetTaskTypes(w http.ResponseWriter, r *http.Request) {
 	var req request.GetTaskTypes
 
 	req.AccessToken = cookie.Value
-
 	res, err := h.Tasks.GetTaskTypes(&req)
+	log.Infof("================================================== %v", res.TaskTypes)
 
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTaskTypes",
 		).Errorf(
-			"Ошибка при получении профиля команды: %s",
+			"Ошибка при получении типов задач: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -626,7 +628,7 @@ func (h *HTTPHandler) TakeTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.AccessToken = cookie.Value
-
+	log.Info("++++++++++++++++++++")
 	err = h.Tasks.TakeTask(&req)
 
 	if err != nil {
@@ -751,9 +753,10 @@ func (h *HTTPHandler) LoadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.AccessToken = cookie.Value
-
+	log.Info("err = h.Tasks.UploadPhoto(req)")
 	err = h.Tasks.UploadPhoto(req)
 	if err != nil {
+		log.Errorf("can't upload photo: %w", err)
 		http.Error(w, "bad request", http.StatusBadRequest)
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -778,6 +781,7 @@ func (h *HTTPHandler) GetAnswers(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.Tasks.GetAnswers(&req)
 	if err != nil {
+		log.Errorf("can't@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ h.Tasks.GetAnswers(&req) :%w", err)
 		log.WithField(
 			"origin.function", "GetTask",
 		).Errorf(

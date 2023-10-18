@@ -1,6 +1,6 @@
 package request
 
 type TakeTask struct {
-	TaskTypeId  int
+	TaskTypeId  string `json:"taskTypeId"`
 	AccessToken string
 }

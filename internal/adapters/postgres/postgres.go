@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
@@ -333,14 +334,19 @@ func (r *UserAuthStorage) GetTeam(teamID string) (domain.Team, error) {
 }
 
 func (r *UserAuthStorage) GetTeamPoints(teamID string) (int, error) {
-	var points int
+	var points sql.NullInt64
 	var res = true
-	err := r.db.QueryRow(`select SUM(task.points) from team_task left join task on team_task.task_id = task.id 
+	err := r.db.QueryRow(`select SUM(task.max_points) from team_task left join task on team_task.task_id = task.id 
                         where team_task.team_id = $1 and result = $2`, teamID, res).Scan(&points)
 	if err != nil {
 		return 0, err
 	}
-	return points, nil
+
+	if !points.Valid {
+		return 0, err
+	}
+
+	return int(points.Int64), nil
 }
 
 func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
@@ -425,23 +431,42 @@ const queryGetTaskTypes = `
 
 func (r *UserAuthStorage) GetTaskTypes(teamID string) (domain.TaskTypes, error) {
 	var taskTypes domain.TaskTypes
-	rows, err := r.db.Query(queryGetTaskTypes, teamID)
+	rows, err := r.db.Query(`select id, title from "task_type"`)
 	if err != nil {
 		return nil, fmt.Errorf("can't db.Query on GetTaskTypes: %w", err)
 	}
 
+	//log.Infof("%v", rows)
 	for rows.Next() {
 		var out domain.TaskType
-		err = rows.Scan(&out.ID, &out.Count)
+
+		err = rows.Scan(&out.ID, &out.Title)
 		if err != nil {
 			return nil, err
 		}
-		err = r.db.QueryRow(`select title from team_task where id = $1`, out.ID).Scan(&out.Title)
+
+		err = r.db.QueryRow(`select count(*) from "task" where type_id = $1`, out.ID).Scan(&out.Count)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("can't db.Query in row on count type_id: %w", err)
 		}
-		out.IsActive = true
+
+		err := r.db.QueryRow(`
+	select count(task.type_id) 
+    from team_task 
+    left join task on team_task.task_id = task.id 
+    where team_task.team_id=$1 
+    group by team_id
+`, teamID).Scan(&out.TeamAmount)
+
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("can't db.Query in massive request: %w", err)
+		}
+		out.IsActive = false
+		if out.TeamAmount < out.Count {
+			out.IsActive = true
+		}
 		taskTypes = append(taskTypes, out)
+		log.Infof("%v", out)
 	}
 	return taskTypes, nil
 }
@@ -467,7 +492,7 @@ func (r *UserAuthStorage) GetBusyNocPlaceses() (int, error) {
 
 func (r *UserAuthStorage) GetTeamTaskAmount(taskTypeID int) (int, error) {
 	var teamAmount int
-	err := r.db.QueryRow(`select count(*) from team_task where type_id = $1`, taskTypeID).Scan(&teamAmount)
+	err := r.db.QueryRow(`select count(*) from team_task where task_type_id = $1`, taskTypeID).Scan(&teamAmount)
 	if err != nil {
 		return 0, err
 	}
@@ -476,28 +501,36 @@ func (r *UserAuthStorage) GetTeamTaskAmount(taskTypeID int) (int, error) {
 
 func (r *UserAuthStorage) GetAvailableTaskID(teamID string, taskTypeID int) ([]string, error) {
 	var taskIDs []string
-	rows, err := r.db.Query(`select task.id from team_task 
-    				  right join task on team_task.task_id = task.id 
-               		  where team_id = $1 and task.type_id = $2 and team_task.task_id is NULL`, teamID, taskTypeID)
+	var tasks []string
+	var teamsTasks []string
+	err := r.db.Select(&tasks, `select id from task where type_id = $1`, taskTypeID)
 	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		var taskID string
-		err = rows.Scan(&taskID)
-		if err != nil {
-			return nil, err
-		}
-		taskIDs = append(taskIDs, taskID)
+		return nil, fmt.Errorf("can't select tasks :%w", err)
 	}
 
+	err = r.db.Select(&teamsTasks, `select task_id from team_task where team_id = $1`, teamID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("can't select teamTasks :%w", err)
+	}
+
+	for _, t := range tasks {
+		for _, tt := range teamsTasks {
+			if t != tt {
+				taskIDs = append(taskIDs, t)
+			}
+		}
+	}
+	if teamsTasks == nil {
+		return tasks, nil
+	}
+	log.Infof("availableTasks======== %v", taskIDs)
 	return taskIDs, nil
 }
 
 const querySetTaskToTeam = `insert into team_task`
 
-func (r *UserAuthStorage) SetTaskToTeam(taskID string, teamID string) error {
-	_, err := r.db.Exec(`insert into team_task(task_id, team_id) values ($1, $2)`, taskID, teamID)
+func (r *UserAuthStorage) SetTaskToTeam(taskID string, taskTypeId int, teamID string) error {
+	_, err := r.db.Exec(`insert into team_task(task_id, task_type_id, team_id) values ($1, $2, $3)`, taskID, taskTypeId, teamID)
 	return err
 }
 
@@ -529,11 +562,11 @@ func (r *UserAuthStorage) GetActiveTaskID(teamID string) (string, error) {
 func (r *UserAuthStorage) GetTask(taskID string) (domain.Task, error) {
 	var out domain.Task
 	err := r.db.Get(&out, `select id, title, description, type_id, 
-       					  max_points, min_points, answer_type_id from task where id=$1`)
+       					  max_points, min_points, answer_type_id from task where id=$1`, taskID)
 	if err != nil {
-		return domain.Task{}, err
+		return domain.Task{}, fmt.Errorf("can't db.get task :%w", err)
 	}
-	return domain.Task{}, nil
+	return out, nil
 }
 
 func (r *UserAuthStorage) GetTaskStartedTime(taskID string, TeamID string) (time.Time, error) {
@@ -568,7 +601,7 @@ func (r *UserAuthStorage) SetAnswerText(text string, teamID string, taskID strin
 	return err
 }
 func (r *UserAuthStorage) SetAnswerImageBase64(url string, teamID string, taskID string) error {
-	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url)
+	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url, teamID, taskID)
 	return err
 }
 

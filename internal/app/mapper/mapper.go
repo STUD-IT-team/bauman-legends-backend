@@ -112,7 +112,7 @@ func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
 	}
 }
 
-func MakeTaskTypesResponse(in domain.TaskTypes) *response.GetTaskTypes {
+func MakeTaskTypesResponse(in domain.TaskTypes) response.GetTaskTypes {
 	out := make([]response.TaskType, 0, len(in))
 
 	for _, taskType := range in {
@@ -123,7 +123,7 @@ func MakeTaskTypesResponse(in domain.TaskTypes) *response.GetTaskTypes {
 		})
 	}
 
-	return &response.GetTaskTypes{
+	return response.GetTaskTypes{
 		TaskTypes: out,
 	}
 }

@@ -1,7 +1,7 @@
 package response
 
 type GetTaskTypes struct {
-	TaskTypes []TaskType `json:"task_types"`
+	TaskTypes []TaskType `json:"taskTypes"`
 }
 
 type TaskType struct {
