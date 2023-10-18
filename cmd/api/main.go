@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
@@ -58,33 +57,6 @@ func main() {
 	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
 
-
-	connTasks, err := grpc.Dial(
-		grpcURl,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.WithField(
-			"origin.function", "main",
-		).Fatalf(
-			"Невозможно установить соединение с сервисом регистрации и авторизации: %s",
-			err.Error(),
-		)
-	}
-
-	defer func(conn *grpc.ClientConn) {
-		err = conn.Close()
-		if err != nil {
-			log.WithField(
-				"origin.function", "main",
-			).Errorf(
-				"Не удалось закрыть соединение с сервером регистрации и авторизации: %s",
-				err.Error(),
-			)
-		}
-	}(connTasks)
-
-
-
 	repoTasks, err := postgres.NewTaskStorage(startPGString)
 	if err != nil {
 		log.WithField(
@@ -96,8 +68,7 @@ func main() {
 	}
 
 	tasks := app.NewTaskService(conn, repoTasks)
-	teams := app.NewTeamService(connTasks, repo)
-
+	teams := app.NewTeamService(conn, repo)
 
 	handler := handlers.NewHTTPHandler(api, teams, tasks)
 
