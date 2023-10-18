@@ -2,7 +2,13 @@ package main
 
 import (
 	"fmt"
+
+	"net/http"
+	"os"
+
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
@@ -10,8 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"net/http"
-	"os"
 )
 
 func main() {
@@ -75,6 +79,7 @@ func main() {
 	r.Delete("/api/user/session", handler.Logout)
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.ChangeProfile)
+	r.Put("/api/user/password", handler.ChangePassword)
 
 	r.Post("/api/team", handler.RegisterTeam)
 	r.Put("/api/team", handler.ChangeTeam)
