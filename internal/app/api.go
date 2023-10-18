@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
@@ -113,6 +114,22 @@ func (a *Api) ChangeProfile(req *grpc2.ChangeProfileRequest) error {
 			"origin.function", "ChangeProfile",
 		).Errorf(
 			"Ошибка при изменении профиля пользователя: %s",
+			err.Error(),
+		)
+		return err
+	}
+
+	return nil
+}
+
+func (a *Api) ChangePassword(req *grpc2.ChangePasswordRequest) error {
+	_, err := a.AuthClient.ChangePassword(context.Background(), req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangePassword",
+		).Errorf(
+			"Ошибка при изменении пароля пользователя: %s",
 			err.Error(),
 		)
 		return err

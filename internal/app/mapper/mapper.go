@@ -91,6 +91,14 @@ func MakeChangeProfileRequest(req *grpc2.ChangeProfileRequest) *request.ChangePr
 	}
 }
 
+
+func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.ChangePassword {
+	return &request.ChangePassword{
+		OldPassword: req.OldPassword,
+		NewPassword: req.NewPassword,
+    	}
+}
+
 func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
 	var memb []response.Member
 	for i := range team.Members {
@@ -109,5 +117,5 @@ func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
 		Title:   team.Title,
 		Points:  team.Points,
 		Members: memb,
-	}
+    	}
 }

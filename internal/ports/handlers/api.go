@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+
+	"net/http"
+	"time"
 	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
+	"google.golang.org/grpc/status"
 )
 
 type HTTPHandler struct {
@@ -39,13 +41,23 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Register(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Register",
-		).Errorf(
-			"Ошибка регистрации пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Convert(err).Message() == app.ErrUserAlreadyExists.Error() {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Пользователь уже существует: %s",
+				err.Error(),
+			)
+			http.Error(w, "user exists", http.StatusConflict)
+		} else {
+			log.WithField(
+				"origin.function", "Register",
+			).Errorf(
+				"Ошибка регистрации пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -88,13 +100,23 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	res, err := h.Api.Login(&req)
 
 	if err != nil {
-		log.WithField(
-			"origin.function", "Login",
-		).Errorf(
-			"Ошибка входа: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if status.Convert(err).Message() == app.ErrUserNotFound.Error() || status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Пользователь не найден: %s",
+				err.Error(),
+			)
+			http.Error(w, "user does not exist", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "Login",
+			).Errorf(
+				"Ошибка входа: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -243,32 +265,91 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+
+func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
-		).Errorf(
+			"origin.function", "ChangePassword",
+      
+      		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
 		)
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
-
-	var req request.RegisterTeam
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  
+  
+	var reqBody request.ChangePassword
+	if err = json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
-		).Errorf(
+			"origin.function", "ChangePassword",
+      
+      		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
 		)
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+  
+  	req := &grpc2.ChangePasswordRequest{
+		AccessToken: cookie.Value,
+		OldPassword: reqBody.OldPassword,
+		NewPassword: reqBody.NewPassword,
+	}
 
+	err = h.Api.ChangePassword(req)
+
+	if err != nil {
+		if status.Convert(err).Message() == app.ErrInvalidPassword.Error() {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Текущий пароль не совпадает с введенным: %s",
+				err.Error(),
+			)
+			http.Error(w, "not authorized", http.StatusUnauthorized)
+		} else {
+			log.WithField(
+				"origin.function", "ChangePassword",
+			).Errorf(
+				"Ошибка при изменении пароля пользователя: %s",
+				err.Error(),
+			)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+}
+
+func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+      		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+  
+	var req request.RegisterTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "RegisterTeam",
+      
+      		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
 	req.Session = cookie.Value
 	res, err := h.Teams.RegisterTeam(&req)
 	fmt.Println(res.TeamID)
@@ -562,5 +643,5 @@ func (h *HTTPHandler) UpdateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-
 }
+

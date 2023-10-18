@@ -391,3 +391,31 @@ func (r *UserAuthStorage) CheckUserExist(userID string) (bool, error) {
 	return exist, nil
 
 }
+
+func (r *UserAuthStorage) GetUserPasswordById(userID string) (password string, err error) {
+	query := `select password from "user" where id=$1;`
+
+	err = r.db.Get(&password, query, userID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserPasswordById",
+		).Errorf("Ошибка при получении пароля пользователя с помощью ID: %s", err.Error())
+		return "", err
+	}
+
+	return password, nil
+}
+
+func (r *UserAuthStorage) ChangeUserPassword(userID string, newPassword string) error {
+	query := `update "user" set password=$2 where id=$1;`
+	_, err := r.db.Exec(query, userID, newPassword)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "ChangeUserPassword",
+		).Errorf("Ошибка при изменении пароля пользователя: %s", err.Error())
+		return err
+	}
+
+	return nil
+}

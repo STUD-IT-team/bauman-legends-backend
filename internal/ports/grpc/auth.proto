@@ -12,6 +12,7 @@ service Auth {
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
     rpc ChangeProfile (ChangeProfileRequest) returns (EmptyResponse) {}
 
+    rpc ChangePassword (ChangePasswordRequest) returns (EmptyResponse) {}
 }
 
 message RegisterRequest {
@@ -84,6 +85,8 @@ message ChangeProfileRequest {
     string phoneNumber = 8;
 }
 
-
-
-
+message ChangePasswordRequest {
+        string accessToken = 1;
+        string oldPassword = 2;
+        string newPassword = 3;
+}

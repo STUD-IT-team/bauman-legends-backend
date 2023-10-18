@@ -28,6 +28,7 @@ type AuthClient interface {
 	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
 	ChangeProfile(ctx context.Context, in *ChangeProfileRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
 type authClient struct {
@@ -92,6 +93,15 @@ func (c *authClient) ChangeProfile(ctx context.Context, in *ChangeProfileRequest
 	return out, nil
 }
 
+func (c *authClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/auth.Auth/ChangePassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
@@ -102,6 +112,7 @@ type AuthServer interface {
 	Check(context.Context, *CheckRequest) (*CheckResponse, error)
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
 	ChangeProfile(context.Context, *ChangeProfileRequest) (*EmptyResponse, error)
+	ChangePassword(context.Context, *ChangePasswordRequest) (*EmptyResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -126,6 +137,9 @@ func (UnimplementedAuthServer) GetProfile(context.Context, *GetProfileRequest) (
 }
 func (UnimplementedAuthServer) ChangeProfile(context.Context, *ChangeProfileRequest) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeProfile not implemented")
+}
+func (UnimplementedAuthServer) ChangePassword(context.Context, *ChangePasswordRequest) (*EmptyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -248,6 +262,24 @@ func _Auth_ChangeProfile_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).ChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.Auth/ChangePassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +310,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeProfile",
 			Handler:    _Auth_ChangeProfile_Handler,
+		},
+		{
+			MethodName: "ChangePassword",
+			Handler:    _Auth_ChangePassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
