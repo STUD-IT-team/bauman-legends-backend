@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
@@ -9,6 +10,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type UserAuthStorage struct {
@@ -26,6 +28,16 @@ func NewUserAuthStorage(dataSource string) (repository.IUserAuthStorage, error) 
 }
 
 func NewTeamStorage(dataSource string) (repository.TeamStorage, error) {
+	db, err := sqlx.Open("pgx", dataSource)
+	if err != nil {
+		return nil, err
+	}
+	return &UserAuthStorage{
+		db: db,
+	}, err
+}
+
+func NewTaskStorage(dataSource string) (repository.TaskStorage, error) {
 	db, err := sqlx.Open("pgx", dataSource)
 	if err != nil {
 		return nil, err
@@ -320,6 +332,17 @@ func (r *UserAuthStorage) GetTeam(teamID string) (domain.Team, error) {
 	return team, nil
 }
 
+func (r *UserAuthStorage) GetTeamPoints(teamID string) (int, error) {
+	var points int
+	var res = true
+	err := r.db.QueryRow(`select SUM(task.points) from team_task left join task on team_task.task_id = task.id 
+                        where team_task.team_id = $1 and result = $2`, teamID, res).Scan(&points)
+	if err != nil {
+		return 0, err
+	}
+	return points, nil
+}
+
 func (r *UserAuthStorage) DeleteTeam(TeamID string) error {
 	_, err := r.db.Exec(`update "user" set team_id=null, role_id=null where team_id = $1;`, TeamID)
 	if err != nil {
@@ -392,6 +415,172 @@ func (r *UserAuthStorage) CheckUserExist(userID string) (bool, error) {
 
 }
 
+const queryGetTaskTypes = `
+	select task.type_id, count(task.type_id) 
+    from team_task 
+    left join task on team_task.task_id = task.id 
+    where team_id=$1 
+    group by team_id, task.type_id;
+`
+
+func (r *UserAuthStorage) GetTaskTypes(teamID string) (domain.TaskTypes, error) {
+	var taskTypes domain.TaskTypes
+	rows, err := r.db.Query(queryGetTaskTypes, teamID)
+	if err != nil {
+		return nil, fmt.Errorf("can't db.Query on GetTaskTypes: %w", err)
+	}
+
+	for rows.Next() {
+		var out domain.TaskType
+		err = rows.Scan(&out.ID, &out.Count)
+		if err != nil {
+			return nil, err
+		}
+		err = r.db.QueryRow(`select title from team_task where id = $1`, out.ID).Scan(&out.Title)
+		if err != nil {
+			return nil, err
+		}
+		out.IsActive = true
+		taskTypes = append(taskTypes, out)
+	}
+	return taskTypes, nil
+}
+
+func (r *UserAuthStorage) GetTaskAmount(taskTypeID int) (int, error) {
+	var amount int
+
+	err := r.db.QueryRow(`select count(*) from task where type_id = $1`, taskTypeID).Scan(&amount)
+	if err != nil {
+		return 0, err
+	}
+	return amount, nil
+}
+
+func (r *UserAuthStorage) GetBusyNocPlaceses() (int, error) {
+	var busyNoc int
+	err := r.db.QueryRow(`select count(*) from team_task where type_id = 2;`).Scan(&busyNoc)
+	if err != nil {
+		return 0, err
+	}
+	return busyNoc, nil
+}
+
+func (r *UserAuthStorage) GetTeamTaskAmount(taskTypeID int) (int, error) {
+	var teamAmount int
+	err := r.db.QueryRow(`select count(*) from team_task where type_id = $1`, taskTypeID).Scan(&teamAmount)
+	if err != nil {
+		return 0, err
+	}
+	return teamAmount, nil
+}
+
+func (r *UserAuthStorage) GetAvailableTaskID(teamID string, taskTypeID int) ([]string, error) {
+	var taskIDs []string
+	rows, err := r.db.Query(`select task.id from team_task 
+    				  right join task on team_task.task_id = task.id 
+               		  where team_id = $1 and task.type_id = $2 and team_task.task_id is NULL`, teamID, taskTypeID)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var taskID string
+		err = rows.Scan(&taskID)
+		if err != nil {
+			return nil, err
+		}
+		taskIDs = append(taskIDs, taskID)
+	}
+
+	return taskIDs, nil
+}
+
+const querySetTaskToTeam = `insert into team_task`
+
+func (r *UserAuthStorage) SetTaskToTeam(taskID string, teamID string) error {
+	_, err := r.db.Exec(`insert into team_task(task_id, team_id) values ($1, $2)`, taskID, teamID)
+	return err
+}
+
+func (r *UserAuthStorage) CheckActiveTaskExist(teamID string) (bool, error) {
+	var exists bool
+	query := `select exists (select task_id from team_task where team_id = $1 and
+              answer_text is null and answerImageBase64 is null and result is null)` //answerText, answerImageUrl, result
+	err := r.db.Get(&exists, query, teamID)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckActiveTaskExist",
+		).Errorf("Ошибка при проверке существования у команды активной задачи: %s", err.Error())
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (r *UserAuthStorage) GetActiveTaskID(teamID string) (string, error) {
+	var taskID string
+	err := r.db.QueryRow(`select task_id from team_task where team_id = $1 and
+		answer_text is null and answerImageBase64 is null and result is null`, teamID).Scan(&taskID)
+	if err != nil {
+		return "", err
+	}
+	return taskID, nil
+}
+
+func (r *UserAuthStorage) GetTask(taskID string) (domain.Task, error) {
+	var out domain.Task
+	err := r.db.Get(&out, `select id, title, description, type_id, 
+       					  max_points, min_points, answer_type_id from task where id=$1`)
+	if err != nil {
+		return domain.Task{}, err
+	}
+	return domain.Task{}, nil
+}
+
+func (r *UserAuthStorage) GetTaskStartedTime(taskID string, TeamID string) (time.Time, error) {
+	var out time.Time
+
+	err := r.db.Get(&out, `select start_time from team_task where task_id = $1 and team_id = $2`, taskID, TeamID)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return out, nil
+}
+
+func (r *UserAuthStorage) GetTaskTypeName(taskID string) (string, error) {
+	var out string
+
+	err := r.db.Get(&out, `select task_type.title from task left join task_type on task.type_id = task_type.id where task_id = $1`, taskID)
+	if err != nil {
+		return "", err
+	}
+
+	return out, nil
+}
+
+func (r *UserAuthStorage) SetActiveTaskExpired(taskID string, TeamID string) error {
+	_, err := r.db.Exec(`update team_task set result = false where task_id = $1 and team_id = $2`, taskID, TeamID)
+	return err
+}
+
+func (r *UserAuthStorage) SetAnswerText(text string, teamID string, taskID string) error {
+	_, err := r.db.Exec(`update team_task set answer_text = $1 where team_id = $2 and task_id = $3`, text)
+	return err
+}
+func (r *UserAuthStorage) SetAnswerImageBase64(url string, teamID string, taskID string) error {
+	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url)
+	return err
+}
+
+func (r *UserAuthStorage) GetAnswers(teamID string) ([]domain.Answer, error) {
+	var answers []domain.Answer
+	err := r.db.Select(&answers, `select * from team_task where team_id = $1`, teamID)
+	if err != nil {
+		return make([]domain.Answer, 0), err
+	}
+	return answers, nil
+  }
+
 func (r *UserAuthStorage) GetUserPasswordById(userID string) (password string, err error) {
 	query := `select password from "user" where id=$1;`
 
@@ -418,4 +607,6 @@ func (r *UserAuthStorage) ChangeUserPassword(userID string, newPassword string) 
 	}
 
 	return nil
-}
+  }
+
+

@@ -31,7 +31,6 @@ func (t *TeamService) RegisterTeam(req *request.RegisterTeam) (response.Register
 	if err != nil {
 		return response.RegisterTeam{}, err
 	}
-	log.Info(res.Valid, "check")
 	if !res.Valid {
 		return response.RegisterTeam{}, errors.New("valid check error")
 	}
@@ -99,6 +98,10 @@ func (t *TeamService) GetTeam(req *request.GetTeam) (*response.GetTeam, error) {
 
 	log.Info(profile.TeamID)
 	team, err := t.storage.GetTeam(profile.TeamID)
+	if err != nil {
+		return nil, err
+	}
+	team.Points, err = t.storage.GetTeamPoints(profile.TeamID)
 	if err != nil {
 		return nil, err
 	}

@@ -58,7 +58,20 @@ func main() {
 	log.Info("NewTeamStorage connected to db")
 	api := app.NewApi(conn)
 	teams := app.NewTeamService(conn, repo)
-	handler := handlers.NewHTTPHandler(api, teams)
+
+	repoTasks, err := postgres.NewTaskStorage(startPGString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
+	tasks := app.NewTaskService(conn, repoTasks)
+
+	handler := handlers.NewHTTPHandler(api, teams, tasks)
 
 	r := chi.NewRouter()
 	r.Post("/api/user", handler.Register)
@@ -77,6 +90,13 @@ func main() {
 	r.Delete("/api/team/member", handler.DeleteMember)
 	r.Put("/api/team/member", handler.UpdateMember)
 
+	r.Get("/api/task/types", handler.GetTaskTypes)
+	r.Post("/api/task/take", handler.TakeTask)
+	r.Get("/api/task", handler.GetTask)
+	r.Post("/api/task/answer", handler.Answer)
+
+	r.Post("/api/image/upload", handler.LoadPhoto)
+	r.Get("/api/task/answers", handler.GetAnswers)
 	log.WithField(
 		"origin.function", "main",
 	).Info(
