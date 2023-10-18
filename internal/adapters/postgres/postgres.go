@@ -461,7 +461,7 @@ func (r *UserAuthStorage) GetTaskTypes(teamID string) (domain.TaskTypes, error) 
 			return nil, err
 		}
 
-		err = r.db.QueryRow(`select count(*) from "task" where type_id = $1`, out.ID).Scan(&out.Count)
+		err = r.db.QueryRow(`select count(*) from task where task.type_id = $1`, out.ID).Scan(&out.Count)
 		if err != nil {
 			return nil, fmt.Errorf("can't db.Query in row on count type_id: %w", err)
 		}
@@ -471,8 +471,7 @@ func (r *UserAuthStorage) GetTaskTypes(teamID string) (domain.TaskTypes, error) 
     from team_task 
     left join task on team_task.task_id = task.id 
     where team_task.team_id=$1 
-    group by team_id
-`, teamID).Scan(&out.TeamAmount)
+    group by team_id`, teamID).Scan(&out.TeamAmount)
 
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("can't db.Query in massive request: %w", err)
