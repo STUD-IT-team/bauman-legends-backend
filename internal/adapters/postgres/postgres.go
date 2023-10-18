@@ -344,7 +344,6 @@ func (r *UserAuthStorage) GetTeamPoints(teamID string) (int, error) {
 		return 0, err
 	}
 
-
 	if !points.Valid {
 		return 0, err
 	}
@@ -594,7 +593,7 @@ func (r *UserAuthStorage) GetTaskStartedTime(taskID string, TeamID string) (time
 func (r *UserAuthStorage) GetTaskTypeName(taskID string) (string, error) {
 	var out string
 
-	err := r.db.Get(&out, `select task_type.title from task left join task_type on task.type_id = task_type.id where task_id = $1`, taskID)
+	err := r.db.Get(&out, `select task_type.title from task left join task_type on task.type_id = task_type.id where task.id = $1`, taskID)
 	if err != nil {
 		return "", err
 	}
@@ -612,7 +611,7 @@ func (r *UserAuthStorage) SetAnswerText(text string, teamID string, taskID strin
 	return err
 }
 func (r *UserAuthStorage) SetAnswerImageBase64(url string, teamID string, taskID string) error {
-  	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url, teamID, taskID)
+	_, err := r.db.Exec(`update team_task set answerImageBase64 = $1 where team_id = $2 and task_id = $3`, url, teamID, taskID)
 	return err
 }
 
@@ -624,8 +623,6 @@ func (r *UserAuthStorage) GetAnswers(teamID string) ([]domain.Answer, error) {
 	}
 	return answers, nil
 }
-
-
 
 func (r *UserAuthStorage) GetUserPasswordById(userID string) (password string, err error) {
 	query := `select password from "user" where id=$1;`
@@ -653,5 +650,4 @@ func (r *UserAuthStorage) ChangeUserPassword(userID string, newPassword string) 
 	}
 
 	return nil
-  }
-
+}
