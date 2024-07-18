@@ -2,25 +2,35 @@ package main
 
 import (
 	"fmt"
-
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
+	"github.com/go-chi/chi"
+	log "github.com/sirupsen/logrus"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
+	_ "github.com/STUD-IT-team/bauman-legends-backend/cmd/api/docs"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
-	"github.com/go-chi/chi/v5"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
+
+// @title           Backend Bauman Legends
+// @version         1.0
+// @description     This is backend server for bauman legends 2024.
+
+// @host      localhost:3000
+// @BasePath  /api/
+
+// @securityDefinitions.basic  BasicAuth
 
 func main() {
 	settings.LogSetup()
 	grpcURl := fmt.Sprintf("%s:%s", os.Getenv("AUTH_DN"), os.Getenv("AUTH_PORT"))
-	conn, err := grpc.Dial(
+	conn, err := grpc.NewClient(
 		grpcURl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -43,9 +53,8 @@ func main() {
 			)
 		}
 	}(conn)
-	startPGString := "postgresql://postgres:7dgvJVDJvh254aqOpfd@bl-database:5432/bauman_legends"
-	//fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN"))
-	repo, err := postgres.NewTeamStorage(startPGString)
+	// startPGString := os.Getenv("DB_SOURCE")
+	/*teamStorage, err := postgres.NewTeamStorage(startPGString)
 	if err != nil {
 		log.WithField(
 			"origin.function", "main",
@@ -55,61 +64,57 @@ func main() {
 		)
 	}
 	log.Info("NewTeamStorage connected to db")
+
+		repoTasks, err := postgres.NewTaskStorage(startPGString)
+		if err != nil {
+			log.WithField(
+				"origin.function", "main",
+			).Fatalf(
+				"Невозможно установить соединение с базой данных: %s",
+				err.Error(),
+			)
+		}
+		log.Info("NewTaskStorage connected to db")*/
+
+	// tasks := app.NewTaskService(conn, repoTasks)
+	// teams := app.NewTeamService(conn, teamStorage)
+
 	api := app.NewApi(conn)
-
-	repoTasks, err := postgres.NewTaskStorage(startPGString)
-	if err != nil {
-		log.WithField(
-			"origin.function", "main",
-		).Fatalf(
-			"Невозможно установить соединение с базой данных: %s",
-			err.Error(),
-		)
-	}
-
-	tasks := app.NewTaskService(conn, repoTasks)
-	teams := app.NewTeamService(conn, repo)
-
-	handler := handlers.NewHTTPHandler(api, teams, tasks)
+	handler := handlers.NewHTTPHandler(api)
 
 	r := chi.NewRouter()
-	r.Post("/api/user", handler.Register)
-	r.Post("/api/user/auth", handler.Login)
-	r.Delete("/api/user/session", handler.Logout)
+
+	r.Post("/api/user/auth/register", handler.CreateUser)
+	r.Post("/api/user/auth/login", handler.Login)
+	r.Delete("/api/user/auth/logout", handler.Logout)
 	r.Get("/api/user", handler.GetProfile)
-	r.Put("/api/user", handler.ChangeProfile)
-	r.Put("/api/user/password", handler.ChangePassword)
+	r.Put("/api/user", handler.UpdateProfile)
 
-	r.Post("/api/team", handler.RegisterTeam)
-	r.Put("/api/team", handler.ChangeTeam)
-	r.Get("/api/team", handler.GetTeam)
-	r.Delete("/api/team", handler.DeleteTeam)
+	r.Get("/api/admin/user", handler.GetUsersByFilter)
+	r.Get("/api/admin/user/{id}", handler.GetUserById)
 
-	r.Post("/api/team/invite", handler.Invite)
-	r.Delete("/api/team/member", handler.DeleteMember)
-	r.Put("/api/team/member", handler.UpdateMember)
-
-	r.Get("/api/task/types", handler.GetTaskTypes)
-	r.Post("/api/task/take", handler.TakeTask)
-	r.Get("/api/task", handler.GetTask)
-	r.Post("/api/task/answer", handler.Answer)
-
-	r.Post("/api/image/upload", handler.LoadPhoto)
-
-	r.Get("/api/admin/answers", handler.GetAnswers)
-
+	r.Get("/api/docs/*", httpSwagger.WrapHandler)
 	log.WithField(
 		"origin.function", "main",
 	).Info(
 		"Сервер запущен",
 	)
 
-	if err = http.ListenAndServe(fmt.Sprintf("%s:%s", os.Getenv("API_DN"), os.Getenv("API_PORT")), r); err != nil {
+	s := &http.Server{
+		Addr:           ":3000",
+		Handler:        r,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	log.Fatal(s.ListenAndServe())
+
+	/*if err = http.ListenAndServe(fmt.Sprintf("%s:%s", os.Getenv("API_DN"), os.Getenv("API_PORT")), r); err != nil {
 		log.WithField(
 			"origin.function", "main",
 		).Infof(
 			"Сервер завершил работу: %s",
 			err.Error(),
 		)
-	}
+	}*/
 }

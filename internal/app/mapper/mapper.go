@@ -1,7 +1,6 @@
 package mapper
 
 import (
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
@@ -97,54 +96,5 @@ func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.Change
 	return &request.ChangePassword{
 		OldPassword: req.OldPassword,
 		NewPassword: req.NewPassword,
-	}
-}
-
-func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
-	var memb []response.Member
-	for i := range team.Members {
-		role := 0
-		if team.Members[i].Role.Valid {
-			role = int(team.Members[i].Role.Int64)
-		}
-		memb = append(memb, response.Member{
-			Id:   team.Members[i].Id,
-			Name: team.Members[i].Name,
-			Role: role,
-		})
-	}
-	return &response.GetTeam{
-		TeamId:  team.TeamId,
-		Title:   team.Title,
-		Points:  team.Points,
-		Members: memb,
-	}
-}
-
-func MakeGetTaskResponse(in domain.Task) *response.GetTask {
-	return &response.GetTask{
-		Title:        in.Title,
-		Text:         in.Description,
-		TypeId:       in.TypeID,
-		TypeName:     in.TypeName,
-		MaxPoints:    in.MaxPoints,
-		MinPoints:    in.MinPoints,
-		TimeStarted:  in.StartedTime,
-		AnswerTypeId: in.AnswerTypeID,
-	}
-}
-func MakeTaskTypesResponse(in domain.TaskTypes) response.GetTaskTypes {
-	out := make([]response.TaskType, 0, len(in))
-
-	for _, taskType := range in {
-		out = append(out, response.TaskType{
-			Name:     taskType.Title,
-			ID:       taskType.ID,
-			IsActive: taskType.IsActive,
-		})
-	}
-
-	return response.GetTaskTypes{
-		TaskTypes: out,
 	}
 }

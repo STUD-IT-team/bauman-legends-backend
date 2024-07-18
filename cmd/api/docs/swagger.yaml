@@ -1,0 +1,1082 @@
+basePath: /api/
+definitions:
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeProfile:
+    properties:
+      email:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      telegram:
+        type: string
+      vk:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam:
+    properties:
+      name:
+        type: string
+      session:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam:
+    properties:
+      id:
+        type: string
+      session:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam:
+    properties:
+      session:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam:
+    properties:
+      id:
+        type: string
+      session:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.Login:
+    properties:
+      client_browser:
+        type: string
+      client_os:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.Register:
+    properties:
+      client_browser:
+        type: string
+      client_os:
+        type: string
+      email:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      telegram:
+        type: string
+      vk:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam:
+    properties:
+      name:
+        type: string
+      session:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam:
+    properties:
+      members:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member'
+        type: array
+      points:
+        type: integer
+      team_id:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: integer
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam:
+    properties:
+      id:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UserProfile:
+    properties:
+      email:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      name:
+        type: string
+      phone_number:
+        type: string
+      team_id:
+        type: string
+      telegram:
+        type: string
+      vk:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: This is backend server for bauman legends 2024.
+  title: Backend Bauman Legends
+  version: "1.0"
+paths:
+  /admin/team:
+    get:
+      consumes:
+      - application/json
+      description: Get info about team by id
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: team ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetTeamById
+      tags:
+      - team
+  /admin/team/point:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: SpendPointsTeam
+      tags:
+      - team
+  /admin/user:
+    get:
+      consumes:
+      - application/json
+      description: Get info about users by id (only admin)
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: user ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetUserById
+      tags:
+      - user
+  /sec:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetAllMasterClass
+      tags:
+      - sec
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: master class ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: CreateRegisterOnMasterClass
+      tags:
+      - sec
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: master class ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateRegisterOnMasterClass
+      tags:
+      - sec
+  /sec/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: master class ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetMasterClassById
+      tags:
+      - sec
+  /task/media:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: CreateAnswerOnMediaTask
+      tags:
+      - task
+  /task/media/answer:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetAnswerOnMediaTaskById
+      tags:
+      - task
+  /task/text:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: CreateAnswerOnTextTask
+      tags:
+      - task
+  /task/text/answer:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetAnswerOnTextTaskById
+      tags:
+      - task
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GivePointsOnTask
+      tags:
+      - task
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateAnswerOnMediaTaskById
+      tags:
+      - task
+  /team:
+    delete:
+      consumes:
+      - application/json
+      description: Delete team if team is empty (only capitan of team)
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Delete team
+        in: body
+        name: request.DeleteTeam
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteTeam
+      tags:
+      - team
+    get:
+      consumes:
+      - application/json
+      description: User gets info about team
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam'
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetTeam
+      tags:
+      - team
+    post:
+      consumes:
+      - application/json
+      description: User creates team and stay captain of team
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Add team
+        in: body
+        name: request.RegisterTeam
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "409":
+          description: user exists
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: CreateTeam
+      tags:
+      - team
+    put:
+      consumes:
+      - application/json
+      description: Update info about team (only capitan of team)
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Change team
+        in: body
+        name: request.ChangeTeam
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateTeam
+      tags:
+      - team
+  /team/member:
+    delete:
+      consumes:
+      - application/json
+      description: User can be removed from the team (not captain)
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Delete from team
+        in: body
+        name: request.DeleteFromTeam
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: DeleteUserFromTeam
+      tags:
+      - team
+    post:
+      consumes:
+      - application/json
+      description: Capitan of team can add user in his team
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Invite to team
+        in: body
+        name: request.InviteToTeam
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: AddUserInTeam
+      tags:
+      - team
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Get the user information about yourself
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UserProfile'
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetProfile
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update the user information about yourself
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Change profile
+        in: body
+        name: request.ChangeProfile
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: UpdateProfile
+      tags:
+      - user
+  /user/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login in the system
+      parameters:
+      - description: Login account
+        in: body
+        name: request.Login
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: user does not exist
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - user
+  /user/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register user in the system
+      parameters:
+      - description: Add account
+        in: body
+        name: request.Register
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.Register'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "409":
+          description: user exists
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Register
+      tags:
+      - user
+  /user/logout:
+    delete:
+      consumes:
+      - application/json
+      description: Logout in the system
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Logout
+      tags:
+      - user
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

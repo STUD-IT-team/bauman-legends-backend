@@ -2,32 +2,44 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
 
-	"fmt"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/status"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
+	_ "github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc/status"
-	"net/http"
-	"time"
 )
 
 type HTTPHandler struct {
-	Api   *app.Api
-	Teams *app.TeamService
-	Tasks *app.TaskService
+	Api *app.Api
+	// Teams *app.TeamService
+	// Tasks *app.TaskService
 }
 
-func NewHTTPHandler(api *app.Api, team *app.TeamService, tasks *app.TaskService) *HTTPHandler {
-	return &HTTPHandler{Api: api,
-		Teams: team,
-		Tasks: tasks,
+func NewHTTPHandler(api *app.Api) *HTTPHandler {
+	return &HTTPHandler{
+		Api: api,
 	}
 }
 
-func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
+// CreateUser
+// @Summary      Register
+// @Description  Register user in the system
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        request.Register	body		request.Register	true	"Add account"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure		 409  {string}  string    "user exists"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /user/auth/register [post]
+func (h *HTTPHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req request.Register
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -86,6 +98,18 @@ func (h *HTTPHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Login
+// @Summary      Login
+// @Description  Login in the system
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        request.Login	body		request.Login	true	"Login account"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "user does not exist"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /user/auth/login [post]
 func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req request.Login
 
@@ -145,6 +169,18 @@ func (h *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Logout
+// @Summary      Logout
+// @Description  Logout in the system
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {string}  string    "ok"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /user/logout [delete]
 func (h *HTTPHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -177,6 +213,18 @@ func (h *HTTPHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
+// GetProfile
+// @Summary      GetProfile
+// @Description  Get the user information about yourself
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {object}      response.UserProfile
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /user [get]
 func (h *HTTPHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -218,7 +266,21 @@ func (h *HTTPHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
+// UpdateProfile
+// @Summary      UpdateProfile
+// @Description  Update the user information about yourself
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        request.ChangeProfile	body		request.ChangeProfile	true	"Change profile"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /user [put]
+func (h *HTTPHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
@@ -268,7 +330,41 @@ func (h *HTTPHandler) ChangeProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+// GetUsersByFilter
+// @Summary      GetUsersByFilter
+// @Description  Get info about users by filter (only admin)
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        team         query     bool        false  "boolean team"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure		 403  {string}  string	  "not rights"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/user [get]
+func (h *HTTPHandler) GetUsersByFilter(w http.ResponseWriter, r *http.Request) {}
+
+// GetUserById
+// @Summary      GetUserById
+// @Description  Get info about users by id (only admin)
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "user ID"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure		 403  {string}  string	  "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/user [get]
+func (h *HTTPHandler) GetUserById(w http.ResponseWriter, r *http.Request) {}
+
+/* func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
@@ -321,13 +417,28 @@ func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-}
+}*/
 
-func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
+// CreateTeam
+// @Summary      CreateTeam
+// @Description  User creates team and stay captain of team
+// @Tags         team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        request.RegisterTeam	body		request.RegisterTeam	true	"Add team"
+// @Success      201  {object}  response.RegisterTeam
+// @Failure      400  {string}  string    "bad request"
+// @Failure 	 401  {string}  string    "not authorized"
+// @Failure		 409  {string}  string    "user exists"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team [post]
+func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
+			"origin.function", "ChangeProfile",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -336,11 +447,10 @@ func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req request.RegisterTeam
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var req request.CreateTeam
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.WithField(
-			"origin.function", "RegisterTeam",
+			"origin.function", "ChangeProfile",
 		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
@@ -348,163 +458,56 @@ func (h *HTTPHandler) RegisterTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
-	res, err := h.Teams.RegisterTeam(&req)
-	fmt.Println(res.TeamID)
-
-	if err != nil {
-		log.WithField(
-			"origin.function", "RegisterTeam",
-		).Errorf(
-			"Ошибка регистрации команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetProfile",
-		).Errorf(
-			"Ошибка при отправке профиля пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h *HTTPHandler) ChangeTeam(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "UpdateTeam",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.ChangeTeam
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "UpdateTeam",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	req.Session = cookie.Value
-
-	res, err := h.Teams.UpdateTeam(&req)
-
-	if err != nil {
-		log.WithField(
-			"origin.function", "UpdateTeam",
-		).Errorf(
-			"Ошибка регистрации команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	//todo
-
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetProfile",
-		).Errorf(
-			"Ошибка при отправке профиля пользователя: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTeam",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.GetTeam
 
 	req.Session = cookie.Value
-
-	res, err := h.Teams.GetTeam(&req)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTeam",
-		).Errorf(
-			"Ошибка при получении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetProfile",
-		).Errorf(
-			"Ошибка при отправке профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
 }
 
-func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "DeleteTeam",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
+// GetTeam
+// @Summary      GetTeam
+// @Description  User gets info about team
+// @Tags         team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {object}  response.GetTeam
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team [get]
+func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {}
 
-	var req request.DeleteTeam
+// UpdateTeam
+// @Summary      UpdateTeam
+// @Description  Update info about team (only capitan of team)
+// @Tags         team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        request.ChangeTeam	body		request.ChangeTeam	true	"Change team"
+// @Success      200  {string}  string    "ok"
+// @Failure      400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team [put]
+func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {}
 
-	req.Session = cookie.Value
+// DeleteTeam
+// @Summary      DeleteTeam
+// @Description  Delete team if team is empty (only capitan of team)
+// @Tags         team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        request.DeleteTeam  body  request.DeleteTeam true  "Delete team"
+// @Success      200  {string}  string    "ok"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team [delete]
+func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {}
 
-	err = h.Teams.DeleteTeam(&req)
-	if err != nil {
-		log.WithField(
-			"origin.function", "DeleteTeam",
-		).Errorf(
-			"Ошибка при удалении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *HTTPHandler) Invite(w http.ResponseWriter, r *http.Request) {
+/* func (h *HTTPHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
@@ -545,9 +548,41 @@ func (h *HTTPHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
-}
+}*/
 
-func (h *HTTPHandler) DeleteMember(w http.ResponseWriter, r *http.Request) {
+// AddUserInTeam
+// @Summary		 AddUserInTeam
+// @Description  Capitan of team can add user in his team
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param 		 request.InviteToTeam  body  request.InviteToTeam  true  "Invite to team"
+// @Success      200  {string}  string    "ok"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team/member [post]
+func (h *HTTPHandler) AddUserInTeam(w http.ResponseWriter, r *http.Request) {}
+
+// DeleteUserFromTeam
+// @Summary		 DeleteUserFromTeam
+// @Description  User can be removed from the team (not captain)
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param 		 request.DeleteFromTeam  body  request.DeleteFromTeam  true  "Delete from team"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team/member [delete]
+func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request) {}
+
+/* func (h *HTTPHandler) DeleteMember(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
@@ -588,294 +623,255 @@ func (h *HTTPHandler) DeleteMember(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 
-}
+}*/
 
-func (h *HTTPHandler) UpdateMember(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "UpdateMember",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
+// GetTeamsByFilter
+// @Summary		 GetTeamsByFilter
+// @Description  Get all info about team
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        count         query     int        false  "int count"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/team [get]
+func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {}
 
-	var req request.UpdateMember
+// GetTeamById
+// @Summary		 GetTeamById
+// @Description  Get info about team by id
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "team ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/team [get]
+func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "UpdateMember",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	req.Session = cookie.Value
+// SpendPointsTeam
+// @Summary		 SpendPointsTeam
+// @Description
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/team/point [post]
+func (h *HTTPHandler) SpendPointsTeam(w http.ResponseWriter, r *http.Request) {}
 
-	err = h.Teams.UpdateMember(&req)
+// CreateAnswerOnTextTask
+// @Summary		 CreateAnswerOnTextTask
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/text [post]
+func (h *HTTPHandler) CreateAnswerOnTextTask(w http.ResponseWriter, r *http.Request) {}
 
-	if err != nil {
-		log.WithField(
-			"origin.function", "UpdateMember",
-		).Errorf(
-			"Ошибка регистрации команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
+// CreateAnswerOnMediaTask
+// @Summary		 CreateAnswerOnMediaTask
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/media [post]
+func (h *HTTPHandler) CreateAnswerOnMediaTask(w http.ResponseWriter, r *http.Request) {}
 
-func (h *HTTPHandler) GetTaskTypes(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
+// GetAnswerOnMediaByFilter
+// @Summary		 GetAnswerOnMediaByFilter
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        status         query     string        false  "string status"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/media/answer [get]
+func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Request) {}
 
-	var req request.GetTaskTypes
+// GetAnswerOnTextTaskById
+// @Summary		 GetAnswerOnTextTaskById
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "answer ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/text/answer [get]
+func (h *HTTPHandler) GetAnswerOnTextTaskById(w http.ResponseWriter, r *http.Request) {}
 
-	req.AccessToken = cookie.Value
-	res, err := h.Tasks.GetTaskTypes(&req)
-	log.Infof("================================================== %v", res.TaskTypes)
+// GetAnswerOnMediaTaskById
+// @Summary		 GetAnswerOnMediaTaskById
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "answer ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/media/answer [get]
+func (h *HTTPHandler) GetAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Request) {}
 
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Ошибка при получении типов задач: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Ошибка при отправке профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
+// UpdateAnswerOnTextTaskById
+// @Summary		 UpdateAnswerOnTextTaskById
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "answer ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/text/answer [put]
+func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.Request) {}
 
-	w.WriteHeader(http.StatusOK)
-}
+// UpdateAnswerOnMediaTaskById
+// @Summary		 UpdateAnswerOnMediaTaskById
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "answer ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/text/answer [put]
+func (h *HTTPHandler) UpdateAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Request) {}
 
-func (h *HTTPHandler) TakeTask(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
+// GivePointsOnTask
+// @Summary		 GivePointsOnTask
+// @Description
+// @Tags		 task
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "answer ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /task/text/answer [post]
+func (h *HTTPHandler) GivePointsOnTask(w http.ResponseWriter, r *http.Request) {}
 
-	var req request.TakeTask
+// GetAllMasterClass
+// @Summary		 GetAllMasterClass
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec [get]
+func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) {}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
+// GetMasterClassById
+// @Summary		 GetMasterClassById
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "master class ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec/ [get]
+func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request) {}
 
-	req.AccessToken = cookie.Value
-	log.Info("++++++++++++++++++++")
-	err = h.Tasks.TakeTask(&req)
+// CreateRegisterOnMasterClass
+// @Summary		 CreateRegisterOnMasterClass
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "master class ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec [post]
+func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {}
 
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Ошибка при получении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	//todo возможен проёб
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *HTTPHandler) GetTask(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.GetTask
-
-	req.AccessToken = cookie.Value
-
-	res, err := h.Tasks.GetTask(&req)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Ошибка при получении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Ошибка при отправке профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h *HTTPHandler) Answer(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "Answer",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.Answer
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "Answer",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	req.AccessToken = cookie.Value
-
-	err = h.Tasks.Answer(&req)
-
-	if err != nil {
-		log.WithField(
-			"origin.function", "Answer",
-		).Errorf(
-			"Ошибка при получении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	//todo возможен проёб
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *HTTPHandler) LoadPhoto(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "Answer",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.UploadPhoto
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "GetTaskTypes",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	req.AccessToken = cookie.Value
-	log.Info("err = h.Tasks.UploadPhoto(req)")
-	err = h.Tasks.UploadPhoto(req)
-	if err != nil {
-		log.Errorf("can't upload photo: %w", err)
-		http.Error(w, "bad request", http.StatusBadRequest)
-	}
-	w.WriteHeader(http.StatusCreated)
-}
-
-func (h *HTTPHandler) GetAnswers(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access-token")
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Cookie 'access-token' не найден: %s",
-			err.Error(),
-		)
-		http.Error(w, "not authorized", http.StatusUnauthorized)
-		return
-	}
-
-	var req request.GetAnswers
-
-	req.AccessToken = cookie.Value
-
-	res, err := h.Tasks.GetAnswers(&req)
-	if err != nil {
-		log.Errorf("can't@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ h.Tasks.GetAnswers(&req) :%w", err)
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Ошибка при получении профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
-		log.WithField(
-			"origin.function", "GetTask",
-		).Errorf(
-			"Ошибка при отправке профиля команды: %s",
-			err.Error(),
-		)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-}
+// UpdateRegisterOnMasterClass
+// @Summary		 UpdateRegisterOnMasterClass
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "master class ID"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec [put]
+func (h *HTTPHandler) UpdateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {}
