@@ -105,7 +105,7 @@ CREATE TABLE "user"
     vk           TEXT   NOT NULL,
     password     TEXT   NOT NULL,
     phone_number TEXT   NOT NULL,
-    team_id      SERIAL NOT NULL    ,
+    team_id      INTEGER NULL    ,
     PRIMARY KEY (id)
 );
 
