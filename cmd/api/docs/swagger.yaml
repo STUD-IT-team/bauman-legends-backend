@@ -1,5 +1,12 @@
 basePath: /api/
 definitions:
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam:
+    properties:
+      session:
+        type: string
+      user_email:
+        type: string
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeProfile:
     properties:
       email:
@@ -17,29 +24,22 @@ definitions:
       vk:
         type: string
     type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam:
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam:
     properties:
-      name:
-        type: string
       session:
+        type: string
+      team_name:
         type: string
     type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam:
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam:
     properties:
-      id:
-        type: string
       session:
+        type: string
+      user_id:
         type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam:
     properties:
-      session:
-        type: string
-    type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam:
-    properties:
-      id:
-        type: string
       session:
         type: string
     type: object
@@ -75,38 +75,53 @@ definitions:
       vk:
         type: string
     type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam:
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints:
     properties:
-      name:
+      session:
+        type: string
+      spend_points:
+        type: integer
+      teamId:
+        type: integer
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateTeam:
+    properties:
+      new_team_name:
         type: string
       session:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam:
+    properties:
+      team_id:
+        type: integer
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam:
     properties:
+      captain:
+        $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member'
+      id:
+        type: integer
       members:
         items:
           $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member'
         type: array
+      name:
+        type: string
       points:
         type: integer
-      team_id:
-        type: string
-      title:
-        type: string
+      spend_points:
+        type: integer
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member:
     properties:
+      email:
+        type: string
+      grope:
+        type: string
       id:
-        type: string
-      name:
-        type: string
-      role:
         type: integer
-    type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam:
-    properties:
-      id:
+      name:
         type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UserProfile:
@@ -138,6 +153,49 @@ info:
   version: "1.0"
 paths:
   /admin/team:
+    get:
+      consumes:
+      - application/json
+      description: Get all info about team
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: int count
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetTeamsByFilter
+      tags:
+      - team
+  /admin/team/{id}:
     get:
       consumes:
       - application/json
@@ -181,7 +239,7 @@ paths:
       summary: GetTeamById
       tags:
       - team
-  /admin/team/point:
+  /admin/team/{id}/givepoint:
     post:
       consumes:
       - application/json
@@ -191,6 +249,50 @@ paths:
         name: Authorization
         required: true
         type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GivesPointsTeam
+      tags:
+      - team
+  /admin/team/{id}/spendpoint:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Spend points team
+        in: body
+        name: request.UpdateSpendPoints
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints'
       produces:
       - application/json
       responses:
@@ -753,17 +855,17 @@ paths:
         type: string
       - description: Add team
         in: body
-        name: request.RegisterTeam
+        name: request.CreateTeam
         required: true
         schema:
-          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam'
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam'
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam'
         "400":
           description: bad request
           schema:
@@ -797,10 +899,10 @@ paths:
         type: string
       - description: Change team
         in: body
-        name: request.ChangeTeam
+        name: request.UpdateTeam
         required: true
         schema:
-          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam'
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateTeam'
       produces:
       - application/json
       responses:
@@ -838,10 +940,10 @@ paths:
         type: string
       - description: Delete from team
         in: body
-        name: request.DeleteFromTeam
+        name: request.DeleteMemberFromTeam
         required: true
         schema:
-          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam'
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam'
       produces:
       - application/json
       responses:
@@ -878,10 +980,10 @@ paths:
         type: string
       - description: Invite to team
         in: body
-        name: request.InviteToTeam
+        name: request.AddMemberToTeam
         required: true
         schema:
-          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam'
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam'
       produces:
       - application/json
       responses:

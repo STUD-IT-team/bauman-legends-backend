@@ -1,6 +1,6 @@
 package request
 
 type CreateTeam struct {
-	Name    string `json:"name"`
-	Session string `json:"session"`
+	TeamName string `json:"team_name"`
+	Session  string `json:"session"`
 }

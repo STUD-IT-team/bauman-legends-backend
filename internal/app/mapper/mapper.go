@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
@@ -96,5 +97,58 @@ func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.Change
 	return &request.ChangePassword{
 		OldPassword: req.OldPassword,
 		NewPassword: req.NewPassword,
+	}
+}
+
+func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
+	return &response.GetTeam{
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
+	}
+}
+
+func MakeMembersResponse(dom []domain.Member) *[]response.Member {
+	var members []response.Member
+	for _, member := range dom {
+		mem := response.Member{
+			Id:    member.ID,
+			Name:  member.Name,
+			Grope: member.Group,
+			Email: member.Email,
+		}
+		members = append(members, mem)
+	}
+	return &members
+}
+
+func MakeGetTeamsResponse(dom []domain.Team) *response.GetTeamsByFilter {
+	var teams []response.GetTeam
+	for _, team := range dom {
+		t := *MakeGetTeamResponse(team)
+		teams = append(teams, t)
+	}
+	return &response.GetTeamsByFilter{Teams: teams}
+}
+
+func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
+	return &response.GetTeamByID{
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
 	}
 }

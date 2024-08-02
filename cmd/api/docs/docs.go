@@ -22,6 +22,73 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "Get all info about team",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "GetTeamsByFilter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "int count",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "not authorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "not rights",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/team/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get info about team by id",
                 "consumes": [
                     "application/json"
@@ -83,7 +150,67 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/team/point": {
+        "/admin/team/{id}/givepoint": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "team"
+                ],
+                "summary": "GivesPointsTeam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "not authorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "not rights",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/team/{id}/spendpoint": {
             "post": {
                 "security": [
                     {
@@ -107,6 +234,15 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "description": "Spend points team",
+                        "name": "request.UpdateSpendPoints",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints"
+                        }
                     }
                 ],
                 "responses": {
@@ -927,11 +1063,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "Change team",
-                        "name": "request.ChangeTeam",
+                        "name": "request.UpdateTeam",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateTeam"
                         }
                     }
                 ],
@@ -989,11 +1125,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "Add team",
-                        "name": "request.RegisterTeam",
+                        "name": "request.CreateTeam",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam"
                         }
                     }
                 ],
@@ -1001,7 +1137,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam"
                         }
                     },
                     "400": {
@@ -1115,11 +1251,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "Invite to team",
-                        "name": "request.InviteToTeam",
+                        "name": "request.AddMemberToTeam",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam"
                         }
                     }
                 ],
@@ -1177,11 +1313,11 @@ const docTemplate = `{
                     },
                     {
                         "description": "Delete from team",
-                        "name": "request.DeleteFromTeam",
+                        "name": "request.DeleteMemberFromTeam",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam"
                         }
                     }
                 ],
@@ -1479,6 +1615,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam": {
+            "type": "object",
+            "properties": {
+                "session": {
+                    "type": "string"
+                },
+                "user_email": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeProfile": {
             "type": "object",
             "properties": {
@@ -1505,24 +1652,24 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.ChangeTeam": {
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam": {
             "type": "object",
             "properties": {
-                "name": {
+                "session": {
                     "type": "string"
                 },
-                "session": {
+                "team_name": {
                     "type": "string"
                 }
             }
         },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteFromTeam": {
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam": {
             "type": "object",
             "properties": {
-                "id": {
+                "session": {
                     "type": "string"
                 },
-                "session": {
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -1530,17 +1677,6 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.InviteToTeam": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "session": {
                     "type": "string"
                 }
@@ -1595,10 +1731,24 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.RegisterTeam": {
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints": {
             "type": "object",
             "properties": {
-                "name": {
+                "session": {
+                    "type": "string"
+                },
+                "spend_points": {
+                    "type": "integer"
+                },
+                "teamId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateTeam": {
+            "type": "object",
+            "properties": {
+                "new_team_name": {
                     "type": "string"
                 },
                 "session": {
@@ -1606,44 +1756,53 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam": {
+            "type": "object",
+            "properties": {
+                "team_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam": {
             "type": "object",
             "properties": {
+                "captain": {
+                    "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "members": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member"
                     }
                 },
+                "name": {
+                    "type": "string"
+                },
                 "points": {
                     "type": "integer"
                 },
-                "team_id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
+                "spend_points": {
+                    "type": "integer"
                 }
             }
         },
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member": {
             "type": "object",
             "properties": {
-                "id": {
+                "email": {
                     "type": "string"
+                },
+                "grope": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.RegisterTeam": {
-            "type": "object",
-            "properties": {
-                "id": {
                     "type": "string"
                 }
             }

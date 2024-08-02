@@ -6,8 +6,8 @@ CREATE TABLE master_class
     started_at TIMESTAMP NULL    ,
     duration   INTEGER     NULL     DEFAULT 0,
     capacity   INTEGER  NULL     DEFAULT 0, --COMMENT 'количество тел участников',
-    sec_id     SERIAL   NOT NULL,
-    media_id   SERIAL   NOT NULL,  --COMMENT 'для навигации до точки',
+    sec_id     INTEGER   NOT NULL,
+    media_id   INTEGER   NOT NULL,  --COMMENT 'для навигации до точки',
     PRIMARY KEY (id)
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE point_task
 (
     id          SERIAL  NOT NULL,
     description TEXT    NULL    ,
-    media_id    SERIAL  NOT NULL,
+    media_id    INTEGER  NOT NULL,
     points  INTEGER NULL     DEFAULT 0,
     PRIMARY KEY (id)
 );
@@ -40,7 +40,7 @@ CREATE TABLE sec
     id             SERIAL NOT NULL,
     name           TEXT   NULL    ,
     description    TEXT   NULL    ,
-    responsible_id SERIAL NOT NULL,
+    responsible_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -48,23 +48,24 @@ CREATE TABLE team
 (
     id           SERIAL  NOT NULL,
     name         TEXT    NULL    ,
-    spend_points INTEGER NULL    ,
+    delta_points INTEGER NULL    DEFAULT 0,
+    final_video  BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (id)
-); --- COMMENT 'current_task?';
+);
 
 CREATE TABLE team_master_class
 (
     id              SERIAL NOT NULL,
-    team_id         SERIAL NOT NULL,
-    master_class_id SERIAL NOT NULL,
+    team_id         INTEGER NOT NULL,
+    master_class_id INTEGER NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE team_media_answer
 (
     id            SERIAL   NOT NULL,
-    team_id       SERIAL   NOT NULL,
-    point_task_id SERIAL   NOT NULL,
+    team_id       INTEGER   NOT NULL,
+    point_task_id INTEGER   NOT NULL,
     points        INTEGER  NULL     DEFAULT 0,
     comment       TEXT     NULL, ---     COMMENT 'коммент от проверяющего',
     media_id      SERIAL   NOT NULL,
@@ -76,7 +77,7 @@ CREATE TABLE team_media_answer
 CREATE TABLE team_text_answer
 (
     id           SERIAL   NOT NULL,
-    team_id      SERIAL   NOT NULL,
+    team_id      INTEGER   NOT NULL,
     answer       TEXT     NOT NULL,
     text_task_id SERIAL   NOT NULL,
     points       INTEGER  NULL     DEFAULT 0,
@@ -97,7 +98,7 @@ CREATE TABLE text_task
 CREATE TABLE "user"
 (
     id           SERIAL NOT NULL,
-    role_id      SERIAL NOT NULL,
+    role_id      INTEGER NOT NULL DEFAULT 1,
     name         TEXT   NOT NULL,
     "group"      TEXT   NOT NULL,
     email        TEXT   UNIQUE NOT NULL, -- COMMENT ' unique',

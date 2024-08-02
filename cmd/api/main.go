@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	_ "github.com/STUD-IT-team/bauman-legends-backend/cmd/api/docs"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
@@ -53,8 +54,8 @@ func main() {
 			)
 		}
 	}(conn)
-	// startPGString := os.Getenv("DB_SOURCE")
-	/*teamStorage, err := postgres.NewTeamStorage(startPGString)
+	pgString := os.Getenv("DB_SOURCE")
+	teamStorage, err := postgres.NewTeamStorage(pgString)
 	if err != nil {
 		log.WithField(
 			"origin.function", "main",
@@ -64,8 +65,8 @@ func main() {
 		)
 	}
 	log.Info("NewTeamStorage connected to db")
-
-		repoTasks, err := postgres.NewTaskStorage(startPGString)
+	/*
+		repoTasks, err := postgres.NewTaskStorage(pgString)
 		if err != nil {
 			log.WithField(
 				"origin.function", "main",
@@ -77,10 +78,10 @@ func main() {
 		log.Info("NewTaskStorage connected to db")*/
 
 	// tasks := app.NewTaskService(conn, repoTasks)
-	// teams := app.NewTeamService(conn, teamStorage)
+	teams := app.NewTeamService(conn, teamStorage)
 
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api)
+	handler := handlers.NewHTTPHandler(api, teams)
 
 	r := chi.NewRouter()
 
@@ -90,8 +91,21 @@ func main() {
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.UpdateProfile)
 
-	r.Get("/api/admin/user", handler.GetUsersByFilter)
-	r.Get("/api/admin/user/{id}", handler.GetUserById)
+	// r.Get("/api/admin/user", handler.GetUsersByFilter)
+	// r.Get("/api/admin/user/{id}", handler.GetUserById)
+
+	r.Post("/api/team", handler.CreateTeam)
+	r.Delete("/api/team", handler.DeleteTeam)
+	r.Put("/api/team", handler.UpdateTeam)
+	r.Get("/api/team", handler.GetTeam)
+
+	r.Post("/api/team/member", handler.AddUserInTeam)
+	r.Delete("/api/team/member", handler.DeleteUserFromTeam)
+
+	r.Put("/api/admin/team/{id}/point/spend", handler.SpendPointsTeam)
+	r.Put("/api/admin/team/{id}/point/give", handler.GivesPointsTeam)
+	r.Get("/api/admin/team", handler.GetTeamsByFilter)
+	r.Get("/api/admin/team/{id}", handler.GetTeamById)
 
 	r.Get("/api/docs/*", httpSwagger.WrapHandler)
 	log.WithField(

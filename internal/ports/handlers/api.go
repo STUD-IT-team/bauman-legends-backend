@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -16,14 +17,15 @@ import (
 )
 
 type HTTPHandler struct {
-	Api *app.Api
-	// Teams *app.TeamService
+	Api   *app.Api
+	Teams *app.TeamService
 	// Tasks *app.TaskService
 }
 
-func NewHTTPHandler(api *app.Api) *HTTPHandler {
+func NewHTTPHandler(api *app.Api, teams *app.TeamService) *HTTPHandler {
 	return &HTTPHandler{
-		Api: api,
+		Api:   api,
+		Teams: teams,
 	}
 }
 
@@ -427,8 +429,8 @@ func (h *HTTPHandler) GetUserById(w http.ResponseWriter, r *http.Request) {}
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        request.RegisterTeam	body		request.RegisterTeam	true	"Add team"
-// @Success      201  {object}  response.RegisterTeam
+// @Param        request.CreateTeam	body		request.CreateTeam	true	"Add team"
+// @Success      201  {object}  response.CreateTeam
 // @Failure      400  {string}  string    "bad request"
 // @Failure 	 401  {string}  string    "not authorized"
 // @Failure		 409  {string}  string    "user exists"
@@ -438,7 +440,7 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "ChangeProfile",
+			"origin.function", "CreateTeam",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -450,7 +452,7 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	var req request.CreateTeam
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.WithField(
-			"origin.function", "ChangeProfile",
+			"origin.function", "CreateTeam",
 		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
@@ -460,6 +462,29 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Session = cookie.Value
+	res, err := h.Teams.CreateTeam(req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CreateTeam",
+		).Errorf(
+			"Ошибка регистрации команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CreateTeam",
+		).Errorf(
+			"Ошибка при отправке профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 }
 
 // GetTeam
@@ -474,7 +499,46 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /team [get]
-func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {}
+func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "UpdateTeam",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+	var req request.GetTeam
+	req.Session = cookie.Value
+
+	res, err := h.Teams.GetTeam(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeam",
+		).Errorf(
+			"Ошибка при получении данных о команде: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf(
+			"Ошибка при отправке профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 // UpdateTeam
 // @Summary      UpdateTeam
@@ -484,13 +548,65 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {}
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        request.ChangeTeam	body		request.ChangeTeam	true	"Change team"
+// @Param        request.UpdateTeam	body		request.UpdateTeam	true	"Change team"
 // @Success      200  {string}  string    "ok"
 // @Failure      400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /team [put]
-func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {}
+func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "UpdateTeam",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.UpdateTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "UpdateTeam",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.Session = cookie.Value
+
+	res, err := h.Teams.UpdateTeam(&req)
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "UpdateTeam",
+		).Errorf(
+			"Ошибка регистрации команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf(
+			"Ошибка при отправке профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 // DeleteTeam
 // @Summary      DeleteTeam
@@ -505,13 +621,11 @@ func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {}
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /team [delete]
-func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {}
-
-/* func (h *HTTPHandler) Invite(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "Invite",
+			"origin.function", "DeleteTeam",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -520,35 +634,23 @@ func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {}
 		return
 	}
 
-	var req request.InviteToTeam
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.WithField(
-			"origin.function", "InviteToTeam",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
+	var req request.DeleteTeam
 	req.Session = cookie.Value
-	err = h.Teams.InviteToTeam(&req)
 
+	err = h.Teams.DeleteTeam(&req)
 	if err != nil {
 		log.WithField(
-			"origin.function", "Invite",
+			"origin.function", "DeleteTeam",
 		).Errorf(
-			"Ошибка регистрации команды: %s",
+			"Ошибка удалении команды: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 
-}*/
+	w.WriteHeader(http.StatusOK)
+}
 
 // AddUserInTeam
 // @Summary		 AddUserInTeam
@@ -558,35 +660,17 @@ func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {}
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param 		 request.InviteToTeam  body  request.InviteToTeam  true  "Invite to team"
+// @Param 		 request.AddMemberToTeam  body  request.AddMemberToTeam  true  "Invite to team"
 // @Success      200  {string}  string    "ok"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /team/member [post]
-func (h *HTTPHandler) AddUserInTeam(w http.ResponseWriter, r *http.Request) {}
-
-// DeleteUserFromTeam
-// @Summary		 DeleteUserFromTeam
-// @Description  User can be removed from the team (not captain)
-// @Tags		 team
-// @Accept       json
-// @Produce      json
-// @Security 	 ApiKeyAuth
-// @Param 		 Authorization header string true "Authorization"
-// @Param 		 request.DeleteFromTeam  body  request.DeleteFromTeam  true  "Delete from team"
-// @Success      200  {string}  string    "ok"
-// @Failure		 400  {string}  string    "bad request"
-// @Failure      401  {string}  string    "not authorized"
-// @Failure      500  {string}  string    "internal server error"
-// @Router       /team/member [delete]
-func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request) {}
-
-/* func (h *HTTPHandler) DeleteMember(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) AddUserInTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "DeleteMember",
+			"origin.function", "AddUserInTeam",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -595,11 +679,11 @@ func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var req request.DeleteFromTeam
+	var req request.AddMemberToTeam
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.WithField(
-			"origin.function", "InviteToTeam",
+			"origin.function", "AddUserInTeam",
 		).Errorf(
 			"Ошибка чтения запроса: %s",
 			err.Error(),
@@ -609,21 +693,76 @@ func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request)
 	}
 	req.Session = cookie.Value
 
-	err = h.Teams.DeleteFromTeam(&req)
-
+	err = h.Teams.AddMemberToTeam(&req)
 	if err != nil {
 		log.WithField(
-			"origin.function", "DeleteMember",
+			"origin.function", "AddUserInTeam",
 		).Errorf(
-			"Ошибка регистрации команды: %s",
+			"Ошибка добавлении участника в команду: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 
-}*/
+	w.WriteHeader(http.StatusOK)
+}
+
+// DeleteUserFromTeam
+// @Summary		 DeleteUserFromTeam
+// @Description  User can be removed from the team (not captain)
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param 		 request.DeleteMemberFromTeam  body  request.DeleteMemberFromTeam  true  "Delete from team"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /team/member [delete]
+func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "DeleteUserFromTeam",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.DeleteMemberFromTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "DeleteUserFromTeam",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.Session = cookie.Value
+
+	err = h.Teams.DeleteMemberFromTeam(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "DeleteUserFromTeam",
+		).Errorf(
+			"Ошибка удалении участника из команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 // GetTeamsByFilter
 // @Summary		 GetTeamsByFilter
@@ -640,7 +779,56 @@ func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request)
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /admin/team [get]
-func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {}
+func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
+	/*cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamsByFilter",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}*/
+
+	membersCount := r.URL.Query().Get("members_count")
+	count, err := strconv.Atoi(membersCount)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamsByFilter",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Teams.GetTeamsByFilter(&request.GetTeamsByFilter{MembersCount: count})
+
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamsByFilter",
+		).Errorf(
+			err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetProfile",
+		).Errorf(
+			"Ошибка при отправке профиля пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+
+}
 
 // GetTeamById
 // @Summary		 GetTeamById
@@ -656,11 +844,132 @@ func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /admin/team [get]
-func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {}
+// @Router       /admin/team/{id} [get]
+func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamById",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.GetTeam
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "GetTeamById",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.Session = cookie.Value
+
+	res, err := h.Teams.GetTeam(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamById",
+		).Errorf(
+			"Ошибка удалении команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetTeamById",
+		).Errorf(
+			"Ошибка при отправке данных команды: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 // SpendPointsTeam
 // @Summary		 SpendPointsTeam
+// @Description
+// @Tags		 team
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param  		 request.UpdateSpendPoints  body  request.UpdateSpendPoints  true  "Spend points team"
+// @Success      200  {string}  string    "ok"
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/team/{id}/point/spend [put]
+func (h *HTTPHandler) SpendPointsTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "SpendPointsTeam",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.UpdateSpendPoints
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "SpendPointsTeam",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.Session = cookie.Value
+
+	res, err := h.Teams.UpdateSpendPoints(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "SpendPointsTeam",
+		).Errorf(
+			"Ошибка списания баллов: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "SpendPointsTeam",
+		).Errorf(
+			"Ошибка при отправке баллов: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// GivesPointsTeam
+// @Summary		 GivesPointsTeam
 // @Description
 // @Tags		 team
 // @Accept       json
@@ -672,8 +981,60 @@ func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {}
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /admin/team/point [post]
-func (h *HTTPHandler) SpendPointsTeam(w http.ResponseWriter, r *http.Request) {}
+// @Router       /admin/team/{id}/point/give [put]
+func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GivesPointsTeam",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req request.UpdateGivePoints
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.WithField(
+			"origin.function", "GivesPointsTeam",
+		).Errorf(
+			"Ошибка чтения запроса: %s",
+			err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	req.Session = cookie.Value
+
+	res, err := h.Teams.UpdateGiverPoints(&req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GivesPointsTeam",
+		).Errorf(
+			"Ошибка списания баллов: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GivesPointsTeam",
+		).Errorf(
+			"Ошибка при отправке баллов: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 // CreateAnswerOnTextTask
 // @Summary		 CreateAnswerOnTextTask
