@@ -27,8 +27,8 @@ func NewTeamService(conn grpc.ClientConnInterface, r repository.TeamStorage) *Te
 	}
 }
 
-func (s *TeamService) CreateTeam(req request.CreateTeam) (response.CreateTeam, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) CreateTeam(req request.CreateTeam, ses request.Session) (response.CreateTeam, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.CreateTeam{}, err
 	}
@@ -46,7 +46,12 @@ func (s *TeamService) CreateTeam(req request.CreateTeam) (response.CreateTeam, e
 		return response.CreateTeam{}, errors.Join(consts.ConflictError, errors.New("team already exist"))
 	}
 
-	exist, err = s.storage.CheckUserHasTeamById(res.UserID)
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return response.CreateTeam{}, err
+	}
+
+	exist, err = s.storage.CheckUserHasTeamById(userId)
 	if err != nil {
 		return response.CreateTeam{}, err
 	}
@@ -55,7 +60,7 @@ func (s *TeamService) CreateTeam(req request.CreateTeam) (response.CreateTeam, e
 		return response.CreateTeam{}, errors.Join(consts.ConflictError, errors.New("user already has team"))
 	}
 
-	teamID, err := s.storage.CreateTeam(req.TeamName, res.UserID)
+	teamID, err := s.storage.CreateTeam(req.TeamName, userId)
 	if err != nil {
 		return response.CreateTeam{}, err
 	}
@@ -65,8 +70,8 @@ func (s *TeamService) CreateTeam(req request.CreateTeam) (response.CreateTeam, e
 	}, nil
 }
 
-func (s *TeamService) DeleteTeam(req *request.DeleteTeam) error {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) DeleteTeam(ses request.Session) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
@@ -74,12 +79,17 @@ func (s *TeamService) DeleteTeam(req *request.DeleteTeam) error {
 		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
 
-	count, err := s.storage.GetCountUserInTeam(profile.TeamID)
+	teamId, err := strconv.Atoi(profile.TeamID)
+	if err != nil {
+		return err
+	}
+
+	count, err := s.storage.GetCountUserInTeam(teamId)
 	if err != nil {
 		return err
 	}
@@ -88,7 +98,12 @@ func (s *TeamService) DeleteTeam(req *request.DeleteTeam) error {
 		return errors.Join(consts.ConflictError, errors.New("team is not empty"))
 	}
 
-	err = s.storage.DeleteTeam(profile.Id, profile.TeamID)
+	id, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return err
+	}
+
+	err = s.storage.DeleteTeam(id, teamId)
 	if err != nil {
 		return err
 	}
@@ -96,8 +111,8 @@ func (s *TeamService) DeleteTeam(req *request.DeleteTeam) error {
 	return err
 }
 
-func (s *TeamService) UpdateTeam(req *request.UpdateTeam) (response.UpdateTeam, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) UpdateTeam(req *request.UpdateTeam, ses request.Session) (response.UpdateTeam, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.UpdateTeam{}, err
 	}
@@ -105,12 +120,16 @@ func (s *TeamService) UpdateTeam(req *request.UpdateTeam) (response.UpdateTeam, 
 		return response.UpdateTeam{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.UpdateTeam{}, err
 	}
 
-	isCapitan, err := s.storage.CheckUserRoleById(profile.Id, consts.CaptainRole)
+	id, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return response.UpdateTeam{}, err
+	}
+	isCapitan, err := s.storage.CheckUserRoleById(id, consts.CaptainRole)
 	if err != nil {
 		return response.UpdateTeam{}, err
 	}
@@ -119,7 +138,7 @@ func (s *TeamService) UpdateTeam(req *request.UpdateTeam) (response.UpdateTeam, 
 		return response.UpdateTeam{}, errors.Join(consts.ForbiddenError, errors.New("не является капитаном нет прав на изменение названия"))
 	}
 
-	err = s.storage.UpdateTeamName(profile.Id, req.NewTeamName)
+	err = s.storage.UpdateTeamName(id, req.NewTeamName)
 	if err != nil {
 		return response.UpdateTeam{}, err
 	}
@@ -127,8 +146,8 @@ func (s *TeamService) UpdateTeam(req *request.UpdateTeam) (response.UpdateTeam, 
 	return response.UpdateTeam{TeamName: req.NewTeamName}, nil
 }
 
-func (s *TeamService) GetTeam(req *request.GetTeam) (response.GetTeam, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) GetTeam(ses request.Session) (response.GetTeam, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.GetTeam{}, err
 	}
@@ -136,17 +155,26 @@ func (s *TeamService) GetTeam(req *request.GetTeam) (response.GetTeam, error) {
 		return response.GetTeam{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.GetTeam{}, err
 	}
 
-	team, err := s.storage.GetTeamByUserId(profile.Id)
+	id, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return response.GetTeam{}, err
+	}
+	team, err := s.storage.GetTeamByUserId(id)
 	if err != nil {
 		return response.GetTeam{}, err
 	}
 
-	members, err := s.storage.GetMembersTeam(profile.TeamID)
+	teamId, err := strconv.Atoi(profile.TeamID)
+	if err != nil {
+		return response.GetTeam{}, err
+	}
+
+	members, err := s.storage.GetMembersTeam(teamId)
 	if err != nil {
 		return response.GetTeam{}, err
 	}
@@ -162,8 +190,8 @@ func (s *TeamService) GetTeam(req *request.GetTeam) (response.GetTeam, error) {
 	return *mapper.MakeGetTeamResponse(team), nil
 }
 
-func (s *TeamService) GetTeamById(req *request.GetTeamById) (response.GetTeamByID, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) GetTeamById(req *request.GetTeamById, ses request.Session) (response.GetTeamByID, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.GetTeamByID{}, err
 	}
@@ -171,12 +199,12 @@ func (s *TeamService) GetTeamById(req *request.GetTeamById) (response.GetTeamByI
 		return response.GetTeamByID{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	team, err := s.storage.GetTeamByUserId(req.TeamId)
+	team, err := s.storage.GetTeamByUserId(req.Id)
 	if err != nil {
 		return response.GetTeamByID{}, err
 	}
 
-	members, err := s.storage.GetMembersTeam(req.TeamId)
+	members, err := s.storage.GetMembersTeam(req.Id)
 	if err != nil {
 		return response.GetTeamByID{}, err
 	}
@@ -192,8 +220,8 @@ func (s *TeamService) GetTeamById(req *request.GetTeamById) (response.GetTeamByI
 	return *mapper.MakeGetTeamByIdResponse(team), nil
 }
 
-func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam) error {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam, ses request.Session) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
@@ -201,12 +229,16 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam) error {
 		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
 
-	count, err := s.storage.GetCountUserInTeam(profile.TeamID)
+	teamId, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return err
+	}
+	count, err := s.storage.GetCountUserInTeam(teamId)
 	if err != nil {
 		return err
 	}
@@ -233,7 +265,11 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam) error {
 		return errors.Join(consts.ConflictError, errors.New("участник уже состоит в команде"))
 	}
 
-	isCaptain, err := s.storage.CheckUserRoleById(profile.Id, consts.CaptainRole)
+	id, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return err
+	}
+	isCaptain, err := s.storage.CheckUserRoleById(id, consts.CaptainRole)
 	if err != nil {
 		return err
 	}
@@ -242,7 +278,7 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam) error {
 		return errors.Join(consts.ForbiddenError, errors.New("не является капитаном"))
 	}
 
-	err = s.storage.AddMemberToTeam(strconv.Itoa(userId), profile.TeamID)
+	err = s.storage.AddMemberToTeam(userId, teamId)
 	if err != nil {
 		return err
 	}
@@ -250,8 +286,8 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam) error {
 	return nil
 }
 
-func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam) error {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam, ses request.Session) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
@@ -259,7 +295,7 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam) er
 		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: req.Session})
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
 	}
@@ -273,7 +309,11 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam) er
 		return errors.Join(consts.ConflictError, errors.New("участник не состоит в команде"))
 	}
 
-	exist, err = s.storage.CheckUserRoleById(profile.Id, consts.CaptainRole)
+	id, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return err
+	}
+	exist, err = s.storage.CheckUserRoleById(id, consts.CaptainRole)
 	if err != nil {
 		return err
 	}
@@ -291,7 +331,11 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam) er
 		return errors.Join(consts.ConflictError, errors.New("удаляемый участник является капитаном"))
 	}
 
-	err = s.storage.DeleteMemberFromTeam(req.UserID, profile.TeamID)
+	teamId, err := strconv.Atoi(profile.TeamID)
+	if err != nil {
+		return err
+	}
+	err = s.storage.DeleteMemberFromTeam(req.UserID, teamId)
 	if err != nil {
 		return err
 	}
@@ -299,8 +343,8 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam) er
 	return nil
 }
 
-func (s *TeamService) UpdateSpendPoints(req *request.UpdateSpendPoints) (response.UpdateSpendPoints, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) UpdateSpendPoints(req *request.UpdateSpendPoints, ses request.Session) (response.UpdateSpendPoints, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.UpdateSpendPoints{}, err
 	}
@@ -309,7 +353,12 @@ func (s *TeamService) UpdateSpendPoints(req *request.UpdateSpendPoints) (respons
 		return response.UpdateSpendPoints{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	isSeller, err := s.storage.CheckUserRoleById(res.UserID, consts.SellerRole)
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return response.UpdateSpendPoints{}, err
+	}
+
+	isSeller, err := s.storage.CheckUserRoleById(userId, consts.SellerRole)
 	if err != nil {
 		return response.UpdateSpendPoints{}, err
 	}
@@ -335,8 +384,8 @@ func (s *TeamService) UpdateSpendPoints(req *request.UpdateSpendPoints) (respons
 	return response.UpdateSpendPoints{TotalPoints: totalPoints - req.DeltaPoints}, nil
 }
 
-func (s *TeamService) UpdateGiverPoints(req *request.UpdateGivePoints) (response.UpdateGivePoints, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) UpdateGiverPoints(req *request.UpdateGivePoints, ses request.Session) (response.UpdateGivePoints, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.UpdateGivePoints{}, err
 	}
@@ -345,7 +394,12 @@ func (s *TeamService) UpdateGiverPoints(req *request.UpdateGivePoints) (response
 		return response.UpdateGivePoints{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	isSeller, err := s.storage.CheckUserRoleById(res.UserID, consts.SellerRole)
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return response.UpdateGivePoints{}, err
+	}
+
+	isSeller, err := s.storage.CheckUserRoleById(userId, consts.SellerRole)
 	if err != nil {
 		return response.UpdateGivePoints{}, err
 	}
@@ -367,8 +421,8 @@ func (s *TeamService) UpdateGiverPoints(req *request.UpdateGivePoints) (response
 	return response.UpdateGivePoints{TotalPoints: totalPoints + req.DeltaPoints}, nil
 }
 
-func (s *TeamService) GetTeamsByFilter(req *request.GetTeamsByFilter) (response.GetTeamsByFilter, error) {
-	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: req.Session})
+func (s *TeamService) GetTeamsByFilter(req *request.GetTeamsByFilter, ses request.Session) (response.GetTeamsByFilter, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
 	if err != nil {
 		return response.GetTeamsByFilter{}, err
 	}
@@ -377,12 +431,17 @@ func (s *TeamService) GetTeamsByFilter(req *request.GetTeamsByFilter) (response.
 		return response.GetTeamsByFilter{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
-	isAdmin, err := s.storage.CheckUserRoleById(res.UserID, consts.AdminRole)
+	userId, err := strconv.Atoi(res.UserID)
 	if err != nil {
 		return response.GetTeamsByFilter{}, err
 	}
 
-	isSeller, err := s.storage.CheckUserRoleById(res.UserID, consts.SellerRole)
+	isAdmin, err := s.storage.CheckUserRoleById(userId, consts.AdminRole)
+	if err != nil {
+		return response.GetTeamsByFilter{}, err
+	}
+
+	isSeller, err := s.storage.CheckUserRoleById(userId, consts.SellerRole)
 	if err != nil {
 		return response.GetTeamsByFilter{}, err
 	}
@@ -402,7 +461,7 @@ func (s *TeamService) GetTeamsByFilter(req *request.GetTeamsByFilter) (response.
 	}
 
 	for _, team := range teams {
-		members, err := s.storage.GetMembersTeam(strconv.Itoa(team.ID))
+		members, err := s.storage.GetMembersTeam(team.ID)
 		if err != nil {
 			return response.GetTeamsByFilter{}, err
 		}

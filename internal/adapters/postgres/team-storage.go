@@ -43,7 +43,7 @@ func (s *TeamStorage) CheckTeam(teamName string) (exists bool, err error) {
 	return exists, nil
 }
 
-func (s *TeamStorage) CreateTeam(teamName string, userId string) (teamId int, err error) {
+func (s *TeamStorage) CreateTeam(teamName string, userId int) (teamId int, err error) {
 	tx, err := s.db.Begin(context.Background())
 	if err != nil {
 		log.WithField(
@@ -89,7 +89,7 @@ func (s *TeamStorage) CreateTeam(teamName string, userId string) (teamId int, er
 	return teamId, nil
 }
 
-func (s *TeamStorage) CheckUserHasTeamById(userId string) (exists bool, err error) {
+func (s *TeamStorage) CheckUserHasTeamById(userId int) (exists bool, err error) {
 	err = s.db.QueryRow(context.TODO(), checkUserHasTeamByIdQuery, userId).Scan(&exists)
 	if err != nil {
 		log.WithField(
@@ -125,7 +125,7 @@ func (s *TeamStorage) CheckUserHasTeamByEmail(email string) (exists bool, err er
 	return exists, nil
 }
 
-func (s *TeamStorage) SetTeamID(userId string, teamID int) error {
+func (s *TeamStorage) SetTeamID(userId int, teamID int) error {
 	_, err := s.db.Exec(context.TODO(), setTeamIdQuery, userId, teamID)
 	if err != nil {
 		log.WithField(
@@ -137,7 +137,7 @@ func (s *TeamStorage) SetTeamID(userId string, teamID int) error {
 	return err
 }
 
-func (s *TeamStorage) UpdateTeamName(userId string, teamName string) error {
+func (s *TeamStorage) UpdateTeamName(userId int, teamName string) error {
 	_, err := s.db.Exec(context.TODO(), updateTeamNameQuery, teamName, userId)
 	if err != nil {
 		log.WithField(
@@ -149,7 +149,7 @@ func (s *TeamStorage) UpdateTeamName(userId string, teamName string) error {
 	return nil
 }
 
-func (s *TeamStorage) CheckUserRoleById(userId string, role int) (exists bool, err error) {
+func (s *TeamStorage) CheckUserRoleById(userId int, role int) (exists bool, err error) {
 	err = s.db.QueryRow(context.TODO(), checkUserRoleQuery, userId, role).Scan(&exists)
 	if err != nil {
 		log.WithField(
@@ -161,7 +161,7 @@ func (s *TeamStorage) CheckUserRoleById(userId string, role int) (exists bool, e
 	return exists, err
 }
 
-func (s *TeamStorage) DeleteMemberFromTeam(userId string, teamId string) error {
+func (s *TeamStorage) DeleteMemberFromTeam(userId int, teamId int) error {
 	_, err := s.db.Exec(context.TODO(), deleteMemberFromTeamQuery, userId)
 	if err != nil {
 		log.WithField(
@@ -172,7 +172,7 @@ func (s *TeamStorage) DeleteMemberFromTeam(userId string, teamId string) error {
 	return nil
 }
 
-func (s *TeamStorage) AddMemberToTeam(userId string, teamId string) error {
+func (s *TeamStorage) AddMemberToTeam(userId int, teamId int) error {
 	_, err := s.db.Exec(context.TODO(), addMemberToTeamQuery, teamId, userId)
 	if err != nil {
 		log.WithField(
@@ -183,7 +183,7 @@ func (s *TeamStorage) AddMemberToTeam(userId string, teamId string) error {
 	return nil
 }
 
-func (s *TeamStorage) GetTeamByUserId(userId string) (domain.Team, error) {
+func (s *TeamStorage) GetTeamByUserId(userId int) (domain.Team, error) {
 	var team domain.Team
 	err := s.db.QueryRow(context.TODO(), getTeamByIdQuery, userId).Scan(
 		&team.ID,
@@ -200,7 +200,7 @@ func (s *TeamStorage) GetTeamByUserId(userId string) (domain.Team, error) {
 	return team, nil
 }
 
-func (s *TeamStorage) GetMembersTeam(teamId string) ([]domain.Member, error) {
+func (s *TeamStorage) GetMembersTeam(teamId int) ([]domain.Member, error) {
 	var members []domain.Member
 	rows, err := s.db.Query(context.TODO(), getMembersTeamQuery, teamId)
 	if err != nil {
@@ -232,7 +232,7 @@ func (s *TeamStorage) GetMembersTeam(teamId string) ([]domain.Member, error) {
 	return members, nil
 }
 
-func (s *TeamStorage) DeleteTeam(userId, teamId string) error {
+func (s *TeamStorage) DeleteTeam(userId, teamId int) error {
 	tx, err := s.db.Begin(context.Background())
 	if err != nil {
 		log.WithField(
@@ -389,7 +389,7 @@ func (s *TeamStorage) UpdateGiverPointsByTeamId(teamId, deltaPoints int) error {
 	return err
 }
 
-func (s *TeamStorage) GetCountUserInTeam(teamId string) (count int, err error) {
+func (s *TeamStorage) GetCountUserInTeam(teamId int) (count int, err error) {
 	err = s.db.QueryRow(context.TODO(), getCountUserInTeamQuery, teamId).Scan(&count)
 	if err != nil {
 		log.WithField(

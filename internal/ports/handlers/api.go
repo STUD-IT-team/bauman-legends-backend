@@ -461,8 +461,7 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Session = cookie.Value
-	res, err := h.Teams.CreateTeam(req)
+	res, err := h.Teams.CreateTeam(req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "CreateTeam",
@@ -473,9 +472,8 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "CreateTeam",
 		).Errorf(
@@ -485,6 +483,8 @@ func (h *HTTPHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 // GetTeam
@@ -511,10 +511,8 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
 	}
-	var req request.GetTeam
-	req.Session = cookie.Value
 
-	res, err := h.Teams.GetTeam(&req)
+	res, err := h.Teams.GetTeam(request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTeam",
@@ -526,8 +524,7 @@ func (h *HTTPHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf(
@@ -579,9 +576,8 @@ func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	res, err := h.Teams.UpdateTeam(&req)
+	res, err := h.Teams.UpdateTeam(&req, request.Session{Value: cookie.Value})
 
 	if err != nil {
 		log.WithField(
@@ -594,8 +590,7 @@ func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf(
@@ -634,10 +629,7 @@ func (h *HTTPHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req request.DeleteTeam
-	req.Session = cookie.Value
-
-	err = h.Teams.DeleteTeam(&req)
+	err = h.Teams.DeleteTeam(request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "DeleteTeam",
@@ -691,9 +683,8 @@ func (h *HTTPHandler) AddUserInTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	err = h.Teams.AddMemberToTeam(&req)
+	err = h.Teams.AddMemberToTeam(&req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "AddUserInTeam",
@@ -747,9 +738,8 @@ func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	err = h.Teams.DeleteMemberFromTeam(&req)
+	err = h.Teams.DeleteMemberFromTeam(&req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "DeleteUserFromTeam",
@@ -780,7 +770,7 @@ func (h *HTTPHandler) DeleteUserFromTeam(w http.ResponseWriter, r *http.Request)
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /admin/team [get]
 func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
-	/*cookie, err := r.Cookie("access-token")
+	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTeamsByFilter",
@@ -790,7 +780,7 @@ func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
 		)
 		http.Error(w, "not authorized", http.StatusUnauthorized)
 		return
-	}*/
+	}
 
 	membersCount := r.URL.Query().Get("members_count")
 	count, err := strconv.Atoi(membersCount)
@@ -804,7 +794,7 @@ func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.Teams.GetTeamsByFilter(&request.GetTeamsByFilter{MembersCount: count})
+	res, err := h.Teams.GetTeamsByFilter(&request.GetTeamsByFilter{MembersCount: count}, request.Session{Value: cookie.Value})
 
 	if err != nil {
 		log.WithField(
@@ -815,8 +805,7 @@ func (h *HTTPHandler) GetTeamsByFilter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "GetProfile",
 		).Errorf(
@@ -858,21 +847,18 @@ func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req request.GetTeam
+	var req request.GetTeamById
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = req.Bind(r); err != nil {
 		log.WithField(
 			"origin.function", "GetTeamById",
-		).Errorf(
-			"Ошибка чтения запроса: %s",
-			err.Error(),
-		)
+		).Errorf("Ошибка чтения запроса: %s",
+			err.Error())
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	res, err := h.Teams.GetTeam(&req)
+	res, err := h.Teams.GetTeamById(&req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTeamById",
@@ -884,8 +870,7 @@ func (h *HTTPHandler) GetTeamById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "GetTeamById",
 		).Errorf(
@@ -939,9 +924,8 @@ func (h *HTTPHandler) SpendPointsTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	res, err := h.Teams.UpdateSpendPoints(&req)
+	res, err := h.Teams.UpdateSpendPoints(&req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "SpendPointsTeam",
@@ -953,8 +937,7 @@ func (h *HTTPHandler) SpendPointsTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "SpendPointsTeam",
 		).Errorf(
@@ -1007,9 +990,8 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	req.Session = cookie.Value
 
-	res, err := h.Teams.UpdateGiverPoints(&req)
+	res, err := h.Teams.UpdateGiverPoints(&req, request.Session{Value: cookie.Value})
 	if err != nil {
 		log.WithField(
 			"origin.function", "GivesPointsTeam",
@@ -1021,8 +1003,7 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(res)
-	if err != nil {
+	if err = json.NewEncoder(w).Encode(res); err != nil {
 		log.WithField(
 			"origin.function", "GivesPointsTeam",
 		).Errorf(
