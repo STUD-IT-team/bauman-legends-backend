@@ -7,10 +7,20 @@ services:
     env_file:
       - ./db.env
     volumes:
-      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+    #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
       - ./db-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5434:5432"
+
+  migrator:
+    container_name: bl_migrator
+    depends_on:
+      - database
+    env_file:
+      - migrator.env
+    build:
+      context: ../
+      dockerfile: ./migrations/Dockerfile
 
   api:
     container_name: "${API_DN}"
@@ -36,6 +46,7 @@ services:
       - auth.env
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
+
 
 networks:
   default:

@@ -1,19 +1,17 @@
 package domain
 
-import "database/sql"
-
-// Team
-//
-// Таблица команд
 type Team struct {
-	TeamId  string `db:"id"`
-	Title   string `db:"title"`
-	Points  int    `db:"points"`
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
 	Members []Member
+	Captain Member
+	Points  int `json:"points"`
 }
 
 type Member struct {
-	Id   string        `db:"id"`
-	Name string        `db:"name"`
-	Role sql.NullInt64 `db:"role"`
+	ID     int    `json:"id"`
+	RoleId int    `json:"roleId"`
+	Name   string `json:"name"`
+	Group  string `json:"group"`
+	Email  string `json:"email"`
 }

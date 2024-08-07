@@ -2,23 +2,25 @@ package main
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"net"
+	"os"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/cache"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"net"
-	"os"
 )
 
 func main() {
 	settings.LogSetup()
 
 	sessionCache := cache.NewSessionCache()
-	log.Info(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
-	repo, err := postgres.NewUserAuthStorage(fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN")))
+
+	pgConnString := fmt.Sprintf(os.Getenv("DATA_SOURCE"), os.Getenv("DB_DN"))
+	repo, err := postgres.NewUserAuthStorage(pgConnString)
 	if err != nil {
 		log.WithField(
 			"origin.function", "main",
@@ -27,6 +29,7 @@ func main() {
 			err.Error(),
 		)
 	}
+	log.Info("Соединение с бд установленно")
 
 	service := app.NewAuth(sessionCache, repo)
 
@@ -40,7 +43,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	grpc2.RegisterAuthServer(grpcServer, service)
 
-	log.WithField("origin.function", "main").Info("Сервер запущен")
+	log.WithField("origin.function", "main").Info("Сервер запущен на ", os.Getenv("AUTH_DN"), ":", os.Getenv("AUTH_PORT"))
 
 	err = grpcServer.Serve(lis)
 	if err != nil {

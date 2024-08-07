@@ -100,51 +100,55 @@ func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.Change
 	}
 }
 
-func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
-	var memb []response.Member
-	for i := range team.Members {
-		role := 0
-		if team.Members[i].Role.Valid {
-			role = int(team.Members[i].Role.Int64)
-		}
-		memb = append(memb, response.Member{
-			Id:   team.Members[i].Id,
-			Name: team.Members[i].Name,
-			Role: role,
-		})
-	}
+func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
 	return &response.GetTeam{
-		TeamId:  team.TeamId,
-		Title:   team.Title,
-		Points:  team.Points,
-		Members: memb,
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
 	}
 }
 
-func MakeGetTaskResponse(in domain.Task) *response.GetTask {
-	return &response.GetTask{
-		Title:        in.Title,
-		Text:         in.Description,
-		TypeId:       in.TypeID,
-		TypeName:     in.TypeName,
-		MaxPoints:    in.MaxPoints,
-		MinPoints:    in.MinPoints,
-		TimeStarted:  in.StartedTime,
-		AnswerTypeId: in.AnswerTypeID,
+func MakeMembersResponse(dom []domain.Member) *[]response.Member {
+	var members []response.Member
+	for _, member := range dom {
+		mem := response.Member{
+			Id:    member.ID,
+			Name:  member.Name,
+			Grope: member.Group,
+			Email: member.Email,
+		}
+		members = append(members, mem)
 	}
+	return &members
 }
-func MakeTaskTypesResponse(in domain.TaskTypes) response.GetTaskTypes {
-	out := make([]response.TaskType, 0, len(in))
 
-	for _, taskType := range in {
-		out = append(out, response.TaskType{
-			Name:     taskType.Title,
-			ID:       taskType.ID,
-			IsActive: taskType.IsActive,
-		})
+func MakeGetTeamsResponse(dom []domain.Team) *response.GetTeamsByFilter {
+	var teams []response.GetTeam
+	for _, team := range dom {
+		t := *MakeGetTeamResponse(team)
+		teams = append(teams, t)
 	}
+	return &response.GetTeamsByFilter{Teams: teams}
+}
 
-	return response.GetTaskTypes{
-		TaskTypes: out,
+func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
+	return &response.GetTeamByID{
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
 	}
 }
