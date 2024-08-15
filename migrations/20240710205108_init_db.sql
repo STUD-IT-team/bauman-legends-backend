@@ -15,13 +15,14 @@ CREATE TABLE media_obj
 (
     id         SERIAL NOT NULL,
     uuid_media UUID   NOT NULL,
-    type       TEXT   NULL    ,
+    type       TEXT   NOT NULL    ,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE point_task
 (
     id          SERIAL  NOT NULL,
+    title TEXT NOT NULL ,
     description TEXT    NULL    ,
     media_id    INTEGER  NOT NULL,
     points  INTEGER NULL     DEFAULT 0,
@@ -61,15 +62,17 @@ CREATE TABLE team_master_class
     PRIMARY KEY (id)
 );
 
+CREATE TYPE status AS ENUM ('review', 'empty', 'correct', 'wrong');
+
 CREATE TABLE team_media_answer
 (
     id            SERIAL   NOT NULL,
     team_id       INTEGER   NOT NULL,
     point_task_id INTEGER   NOT NULL,
     points        INTEGER  NULL     DEFAULT 0,
-    comment       TEXT     NULL, ---     COMMENT 'коммент от проверяющего',
-    media_id      SERIAL   NOT NULL,
-    status        TEXT     NULL    ,
+    comment       TEXT     NULL DEFAULT '', ---     COMMENT 'коммент от проверяющего',
+    media_id      INTEGER  NULL,
+    status        status     DEFAULT 'empty'   ,
     date          TIMESTAMP NULL    ,
     PRIMARY KEY (id)
 );
@@ -78,10 +81,10 @@ CREATE TABLE team_text_answer
 (
     id           SERIAL   NOT NULL,
     team_id      INTEGER   NOT NULL,
-    answer       TEXT     NOT NULL,
-    text_task_id SERIAL   NOT NULL,
+    answer       TEXT     NULL,
+    text_task_id INTEGER   NOT NULL,
     points       INTEGER  NULL     DEFAULT 0,
-    status       TEXT     NULL    ,
+    status       BOOLEAN     NULL    DEFAULT FALSE,
     date        TIMESTAMP NULL    ,
     PRIMARY KEY (id)
 );
@@ -89,6 +92,7 @@ CREATE TABLE team_text_answer
 CREATE TABLE text_task
 (
     id          SERIAL  NOT NULL,
+    title TEXT NOT NULL ,
     description TEXT    NOT NULL,
     answer      TEXT    NOT NULL,
     points  INTEGER NULL     DEFAULT 0,
@@ -188,4 +192,5 @@ DROP TABLE IF EXISTS team_text_answer;
 DROP TABLE IF EXISTS team;
 DROP TABLE IF EXISTS text_task;
 DROP TABLE IF EXISTS master_class;
+DROP TYPE status;
 -- +goose StatementEnd

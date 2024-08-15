@@ -8,14 +8,14 @@ import (
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
 )
 
 type TeamStorage struct {
 	db *pgx.Conn
 }
 
-func NewTeamStorage(dataSource string) (repository.TeamStorage, error) {
+func NewTeamStorage(dataSource string) (storage.TeamStorage, error) {
 	config, err := pgx.ParseConfig(dataSource)
 	if err != nil {
 		return nil, err

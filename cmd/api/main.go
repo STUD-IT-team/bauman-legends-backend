@@ -13,10 +13,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	_ "github.com/STUD-IT-team/bauman-legends-backend/cmd/api/docs"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/minio"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/adapters/postgres"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/settings"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/ports/handlers"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
 )
 
 // @title           Backend Bauman Legends
@@ -55,6 +57,7 @@ func main() {
 		}
 	}(conn)
 	pgString := os.Getenv("DB_SOURCE")
+
 	teamStorage, err := postgres.NewTeamStorage(pgString)
 	if err != nil {
 		log.WithField(
@@ -65,23 +68,44 @@ func main() {
 		)
 	}
 	log.Info("NewTeamStorage connected to db")
-	/*
-		repoTasks, err := postgres.NewTaskStorage(pgString)
-		if err != nil {
-			log.WithField(
-				"origin.function", "main",
-			).Fatalf(
-				"Невозможно установить соединение с базой данных: %s",
-				err.Error(),
-			)
-		}
-		log.Info("NewTaskStorage connected to db")*/
 
-	// tasks := app.NewTaskService(conn, repoTasks)
-	teams := app.NewTeamService(conn, teamStorage)
+	textTaskStorage, err := postgres.NewTextTaskStorage(pgString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf(
+			"Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+	log.Info("NewTextTaskStorage connected to db")
+
+	mediaTaskStorage, err := postgres.NewMediaTaskStorage(pgString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
+	objectStorage, err := minio.NewMinioStorage("localhost:9000", "user", "password", false)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить соединение с обьектным хранилищем: %s",
+			err.Error(),
+		)
+	}
+
+	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage)
+
+	teams := app.NewTeamService(conn, storage)
+	textTask := app.NewTextTaskService(conn, storage)
+	mediaTask := app.NewMediaTaskService(conn, storage)
 
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api, teams)
+	handler := handlers.NewHTTPHandler(api, teams, textTask, mediaTask)
 
 	r := chi.NewRouter()
 
@@ -106,6 +130,15 @@ func main() {
 	r.Put("/api/admin/team/{id}/point/give", handler.GivesPointsTeam)
 	r.Get("/api/admin/team", handler.GetTeamsByFilter)
 	r.Get("/api/admin/team/{id}", handler.GetTeamById)
+
+	r.Get("/api/task/text", handler.GetTextTask)
+	r.Put("/api/task/text", handler.UpdateAnswerOnTextTaskById)
+	r.Get("/api/task/media", handler.GetMediaTask)
+	r.Put("/api/task/media", handler.UpdateAnswerOnMediaTaskById)
+
+	r.Get("/api/admin/task/media/answer", handler.GetAnswerOnMediaByFilter)
+	r.Get("/api/admin/task/media/answer/{id}", handler.GetAnswerOnMediaTaskById)
+	r.Put("/api/admin/task/media/answer/{id}", handler.UpdateStatusAnswerOnMediaTask)
 
 	r.Get("/api/docs/*", httpSwagger.WrapHandler)
 	log.WithField(

@@ -9,20 +9,20 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
-	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
 )
 
 type TeamService struct {
-	storage repository.TeamStorage
+	storage storage.Storage
 	auth    grpc2.AuthClient
 }
 
-func NewTeamService(conn grpc.ClientConnInterface, r repository.TeamStorage) *TeamService {
+func NewTeamService(conn grpc.ClientConnInterface, s storage.Storage) *TeamService {
 	return &TeamService{
-		storage: r,
+		storage: s,
 		auth:    grpc2.NewAuthClient(conn),
 	}
 }

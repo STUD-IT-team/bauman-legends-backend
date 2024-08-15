@@ -152,3 +152,76 @@ func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
 		Members: *MakeMembersResponse(dom.Members),
 	}
 }
+
+func MakeGetTextTaskResponse(dom domain.TextTask) *response.GetTextTask {
+	return &response.GetTextTask{
+		ID:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+	}
+}
+
+func MakeGetAnswerOnTextTask(dom domain.TextTask) *response.GetAnswerOnTextTaskByID {
+	return &response.GetAnswerOnTextTaskByID{
+		ID:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+	}
+}
+
+func ParseGetTextTaskRequest(req *request.GetTextTask) *domain.TextTask {
+	return &domain.TextTask{}
+}
+
+func ParseUpdateAnswerOnTextTask(req request.UpdateAnswerOnTextTaskByID) *domain.TextTask {
+	return &domain.TextTask{
+		ID:     req.ID,
+		Answer: req.Answer,
+	}
+}
+
+func MakeGetMediaTaskResponse(t domain.MediaTask, o domain.Object) *response.GetMediaTask {
+	return &response.GetMediaTask{
+		Id:          t.ID,
+		Title:       t.Title,
+		Description: t.Description,
+		Points:      t.Points,
+		Video:       o.Data,
+	}
+}
+
+func ParseUpdateAnswerOnMediaTask(req request.UpdateAnswerOnMediaTask) *domain.MediaTask {
+	return &domain.MediaTask{
+		ID: req.ID,
+	}
+}
+
+func MakeGetAnswerOnMediaTask(d domain.MediaTask) *response.GetAnswerOnTextTaskByID {
+	return &response.GetAnswerOnTextTaskByID{
+		ID:          d.ID,
+		Title:       d.Title,
+		Description: d.Description,
+		Points:      d.Points,
+		Answer:      d.Answer,
+		Comment:     d.Comment,
+		Status:      d.Status,
+		TeamId:      d.TeamId,
+	}
+}
+
+func MakeGetAnswerOnMediaTaskByFilter(dom []domain.MediaTask) *response.GetAnswersOnMediaTaskByFilter {
+	var answers []response.AnswerMediaTask
+	for _, d := range dom {
+		answer := response.AnswerMediaTask{
+			Id:          d.ID,
+			Title:       d.Title,
+			Description: d.Description,
+			Status:      d.Status,
+			Answer:      d.Answer,
+		}
+		answers = append(answers, answer)
+	}
+	return &response.GetAnswersOnMediaTaskByFilter{Answers: answers}
+}

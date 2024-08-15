@@ -937,7 +937,7 @@ const docTemplate = `{
                 "tags": [
                     "task"
                 ],
-                "summary": "GivePointsOnTask",
+                "summary": "UpdateStatusAnswerOnMediaTask",
                 "parameters": [
                     {
                         "type": "string",
