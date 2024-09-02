@@ -144,8 +144,8 @@
                 }
             }
         },
-        "/admin/team/{id}/givepoint": {
-            "post": {
+        "/admin/team/{id}/point/give": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -204,8 +204,8 @@
                 }
             }
         },
-        "/admin/team/{id}/spendpoint": {
-            "post": {
+        "/admin/team/{id}/point/spend": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -786,71 +786,6 @@
             }
         },
         "/task/text/answer": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "task"
-                ],
-                "summary": "GetAnswerOnTextTaskById",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "answer ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "not authorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "not rights",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -931,7 +866,7 @@
                 "tags": [
                     "task"
                 ],
-                "summary": "GivePointsOnTask",
+                "summary": "UpdateStatusAnswerOnMediaTask",
                 "parameters": [
                     {
                         "type": "string",
@@ -1184,15 +1119,6 @@
                         "name": "Authorization",
                         "in": "header",
                         "required": true
-                    },
-                    {
-                        "description": "Delete team",
-                        "name": "request.DeleteTeam",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam"
-                        }
                     }
                 ],
                 "responses": {
@@ -1612,9 +1538,6 @@
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "user_email": {
                     "type": "string"
                 }
@@ -1649,9 +1572,6 @@
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "team_name": {
                     "type": "string"
                 }
@@ -1660,19 +1580,8 @@
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam": {
-            "type": "object",
-            "properties": {
-                "session": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1728,13 +1637,10 @@
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "spend_points": {
                     "type": "integer"
                 },
-                "teamId": {
+                "team_id": {
                     "type": "integer"
                 }
             }
@@ -1743,9 +1649,6 @@
             "type": "object",
             "properties": {
                 "new_team_name": {
-                    "type": "string"
-                },
-                "session": {
                     "type": "string"
                 }
             }
@@ -1777,9 +1680,6 @@
                     "type": "string"
                 },
                 "points": {
-                    "type": "integer"
-                },
-                "spend_points": {
                     "type": "integer"
                 }
             }

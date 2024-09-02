@@ -150,8 +150,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/team/{id}/givepoint": {
-            "post": {
+        "/admin/team/{id}/point/give": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -210,8 +210,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/team/{id}/spendpoint": {
-            "post": {
+        "/admin/team/{id}/point/spend": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -792,71 +792,6 @@ const docTemplate = `{
             }
         },
         "/task/text/answer": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "task"
-                ],
-                "summary": "GetAnswerOnTextTaskById",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "answer ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "not authorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "not rights",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -1190,15 +1125,6 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
-                    },
-                    {
-                        "description": "Delete team",
-                        "name": "request.DeleteTeam",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam"
-                        }
                     }
                 ],
                 "responses": {
@@ -1618,9 +1544,6 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "user_email": {
                     "type": "string"
                 }
@@ -1655,9 +1578,6 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "team_name": {
                     "type": "string"
                 }
@@ -1666,19 +1586,8 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam": {
-            "type": "object",
-            "properties": {
-                "session": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -1734,13 +1643,10 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints": {
             "type": "object",
             "properties": {
-                "session": {
-                    "type": "string"
-                },
                 "spend_points": {
                     "type": "integer"
                 },
-                "teamId": {
+                "team_id": {
                     "type": "integer"
                 }
             }
@@ -1749,9 +1655,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "new_team_name": {
-                    "type": "string"
-                },
-                "session": {
                     "type": "string"
                 }
             }
@@ -1783,9 +1686,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "points": {
-                    "type": "integer"
-                },
-                "spend_points": {
                     "type": "integer"
                 }
             }

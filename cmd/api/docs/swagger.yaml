@@ -2,8 +2,6 @@ basePath: /api/
 definitions:
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.AddMemberToTeam:
     properties:
-      session:
-        type: string
       user_email:
         type: string
     type: object
@@ -26,22 +24,13 @@ definitions:
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.CreateTeam:
     properties:
-      session:
-        type: string
       team_name:
         type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteMemberFromTeam:
     properties:
-      session:
-        type: string
       user_id:
-        type: string
-    type: object
-  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam:
-    properties:
-      session:
-        type: string
+        type: integer
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.Login:
     properties:
@@ -77,18 +66,14 @@ definitions:
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints:
     properties:
-      session:
-        type: string
       spend_points:
         type: integer
-      teamId:
+      team_id:
         type: integer
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateTeam:
     properties:
       new_team_name:
-        type: string
-      session:
         type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam:
@@ -109,8 +94,6 @@ definitions:
       name:
         type: string
       points:
-        type: integer
-      spend_points:
         type: integer
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member:
@@ -239,8 +222,8 @@ paths:
       summary: GetTeamById
       tags:
       - team
-  /admin/team/{id}/givepoint:
-    post:
+  /admin/team/{id}/point/give:
+    put:
       consumes:
       - application/json
       parameters:
@@ -277,8 +260,8 @@ paths:
       summary: GivesPointsTeam
       tags:
       - team
-  /admin/team/{id}/spendpoint:
-    post:
+  /admin/team/{id}/point/spend:
+    put:
       consumes:
       - application/json
       parameters:
@@ -650,48 +633,6 @@ paths:
       tags:
       - task
   /task/text/answer:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: answer ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: bad request
-          schema:
-            type: string
-        "401":
-          description: not authorized
-          schema:
-            type: string
-        "403":
-          description: not rights
-          schema:
-            type: string
-        "500":
-          description: internal server error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: GetAnswerOnTextTaskById
-      tags:
-      - task
     post:
       consumes:
       - application/json
@@ -731,7 +672,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: GivePointsOnTask
+      summary: UpdateStatusAnswerOnMediaTask
       tags:
       - task
     put:
@@ -787,12 +728,6 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: Delete team
-        in: body
-        name: request.DeleteTeam
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.DeleteTeam'
       produces:
       - application/json
       responses:

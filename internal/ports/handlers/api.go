@@ -615,7 +615,6 @@ func (h *HTTPHandler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        request.DeleteTeam  body  request.DeleteTeam true  "Delete team"
 // @Success      200  {string}  string    "ok"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
