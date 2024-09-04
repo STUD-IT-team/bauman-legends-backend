@@ -6,6 +6,6 @@ type TextTask struct {
 	Description string `json:"description"`
 	Answer      string `json:"answer"`
 	Points      int    `json:"points"`
-	Status      string `json:"status"`
+	Status      bool   `json:"status"`
 	TeamId      int    `json:"team_id"`
 }

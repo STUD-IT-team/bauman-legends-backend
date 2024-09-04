@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -52,7 +53,7 @@ func (s *MediaTaskStorage) GetNewMediaTask(teamId int) (task domain.MediaTask, e
 
 func (s *MediaTaskStorage) GetStatusLastMediaTask(teamId int) (status string, err error) {
 	row := s.db.QueryRow(context.TODO(), getStatusLastMediaTask, teamId)
-	if row.Scan(&status) == pgx.ErrNoRows {
+	if errors.Is(row.Scan(&status), pgx.ErrNoRows) {
 		return consts.CorrectStatus, nil
 	}
 	if err != nil {

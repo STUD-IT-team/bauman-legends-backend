@@ -38,8 +38,8 @@ const (
 
 const (
 	getTextTaskQuery       = `SELECT id, title, description, answer, points FROM text_task WHERE id NOT IN (SELECT text_task_id FROM team_text_answer WHERE team_id = $1) ORDER BY RANDOM() LIMIT 1`
-	createAnswerOnTextTask = `INSERT INTO team_text_answer (team_id, text_task_id, status, date) VALUES ($1, $2, $3, NOW())`
-	setAnswerOnTextTask    = `UPDATE team_text_answer SET answer = $1, points = $2, status = $3, date = NOW() WHERE text_task_id = $4`
+	createAnswerOnTextTask = `INSERT INTO team_text_answer (team_id, text_task_id, date) VALUES ($1, $2, NOW())`
+	setAnswerOnTextTask    = `UPDATE team_text_answer SET answer = $1, points = $2, status = $3, date = NOW() WHERE text_task_id = $4 AND team_id = $5`
 	getLastTextTask        = `SELECT id, title, description, answer, points FROM text_task WHERE id = (SELECT text_task_id FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1)`
 	getStatusLastTextTask  = `SELECT team_text_answer.status FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1`
 )

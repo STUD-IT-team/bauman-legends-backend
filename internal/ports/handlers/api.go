@@ -1020,7 +1020,7 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// CreateAnswerOnTextTask
+// GetTextTask
 // @Summary		 CreateAnswerOnTextTask
 // @Description
 // @Tags		 task

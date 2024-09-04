@@ -18,6 +18,7 @@ var (
 	ConflictError       = errors.New("conflict")
 	LockedError         = errors.New("locked")
 	InternalServerError = errors.New("internal server error")
+	NoRowsAffectedError = errors.New("no rows affected")
 )
 
 const (

@@ -40,6 +40,9 @@ func (s *TextTaskStorage) GetNewTextTask(teamId int) (domain.TextTask, error) {
 		&task.Answer,
 		&task.Points,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.TextTask{}, consts.NoRowsAffectedError
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetNewTextTask",
@@ -54,7 +57,6 @@ func (s *TextTaskStorage) CreateAnswerOnTextTask(task domain.TextTask) error {
 	_, err := s.db.Exec(context.TODO(), createAnswerOnTextTask,
 		task.TeamId,
 		task.ID,
-		task.Status,
 	)
 	if err != nil {
 		log.WithField(
@@ -71,7 +73,8 @@ func (s *TextTaskStorage) UpdateAnswerOnTextTask(task domain.TextTask) error {
 		task.Answer,
 		task.Points,
 		task.Status,
-		task.ID)
+		task.ID,
+		task.TeamId)
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnTextTask",
@@ -82,10 +85,16 @@ func (s *TextTaskStorage) UpdateAnswerOnTextTask(task domain.TextTask) error {
 	return nil
 }
 
-func (s *TextTaskStorage) GetStatusLastTextTask(teamId int) (status string, err error) {
-	err = s.db.QueryRow(context.TODO(), getStatusLastTextTask, teamId).Scan(&status)
+func (s *TextTaskStorage) GetStatusLastTextTask(teamId int) (status bool, err error) {
+	row := s.db.QueryRow(context.TODO(), getStatusLastTextTask, teamId)
+	if errors.Is(row.Scan(&status), pgx.ErrNoRows) {
+		return true, nil
+	}
 	if err != nil {
-		return consts.CorrectStatus, nil
+		log.WithField(
+			"origin.function", "GetStatusLastTextTask",
+		).Errorf("ошибка чтения статуса: %s", err.Error())
+		return false, err
 	}
 
 	return status, nil

@@ -62,23 +62,23 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 
 	var task domain.TextTask
 
-	if status != consts.CorrectStatus {
+	if !status {
 		task, err = s.storage.GetLastTextTask(teamId)
 		if err != nil {
 			return response.GetTextTask{}, err
 		}
-	}
+	} else {
+		task, err = s.storage.GetNewTextTask(teamId)
+		if err != nil {
+			return response.GetTextTask{}, err
+		}
 
-	task, err = s.storage.GetNewTextTask(teamId)
-	if err != nil {
-		return response.GetTextTask{}, err
-	}
+		task.TeamId = teamId
 
-	task.TeamId = teamId
-
-	err = s.storage.CreateAnswerOnTextTask(task)
-	if err != nil {
-		return response.GetTextTask{}, err
+		err = s.storage.CreateAnswerOnTextTask(task)
+		if err != nil {
+			return response.GetTextTask{}, err
+		}
 	}
 
 	return *mapper.MakeGetTextTaskResponse(task), nil
@@ -127,12 +127,11 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 	}
 
 	if task.Answer == answer.Answer {
-		answer.Status = consts.CorrectStatus
+		answer.Status = true
+		answer.Points = task.Points
 	} else {
-		answer.Status = consts.WrongStatus
+		answer.Status = false
 	}
-
-	answer.Points = task.Points
 
 	err = s.storage.UpdateAnswerOnTextTask(answer)
 	if err != nil {
