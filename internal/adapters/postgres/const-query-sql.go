@@ -61,7 +61,8 @@ const (
        									tma.status
 								FROM team_media_answer tma JOIN point_task pt ON tma.point_task_id = pt.id 
 								    JOIN public.media_obj mov ON mov.id = tma.media_id
-								    WHERE status != 'empty'`
+								    WHERE status != 'empty'
+								    ORDER BY date DESC`
 
 	getAnswerOnMediaTaskByStatus = `SELECT tma.id,
        									pt.title, 
@@ -74,7 +75,8 @@ const (
        									tma.status
 								FROM team_media_answer tma JOIN point_task pt ON tma.point_task_id = pt.id 
 								    JOIN public.media_obj mov ON mov.id = tma.media_id
-								    WHERE status = $1`
+								    WHERE status = $1
+								    ORDER BY date DESC`
 
 	getMediaTaskById = `SELECT tma.id,
        									pt.title, 
@@ -90,12 +92,32 @@ const (
 									
 								WHERE tma.id = $1`
 
-	setPointsOnMediaTask    = `UPDATE team_media_answer SET points = $1, status = $2 WHERE id = $3`
+	setPointsOnMediaTask    = `UPDATE team_media_answer SET points = $1, status = $2, comment = $3 WHERE id = $4`
 	getPointsOnMediaTask    = `SELECT point_task.points FROM team_media_answer JOIN point_task ON team_media_answer.point_task_id = point_task.id WHERE team_media_answer.id = $1`
 	getUpdateTimeMediaTask  = `SELECT date FROM team_media_answer WHERE id = $1`
 	checkAnswerIsExistQuery = `SELECT EXISTS (SELECT id FROM team_media_answer WHERE team_id = $1 AND id = $2)`
+	getAllMediaTaskByTeam   = `SELECT 
+       								point_task.id, 
+       								point_task.title, 
+       								point_task.description,
+       								team_media_answer.id, 
+       								team_media_answer.points, 
+       								team_media_answer.comment, 
+       								team_media_answer.status
+								FROM team_media_answer JOIN point_task ON team_media_answer.point_task_id = point_task.id WHERE team_id = $1`
+	getMediaTaskByTeamById = `SELECT point_task.id, 
+       								point_task.title, 
+       								point_task.description, 
+       								point_task.media_id, 
+       								team_media_answer.id, 
+       								team_media_answer.points, 
+       								team_media_answer.comment, 
+       								team_media_answer.media_id, 
+       								team_media_answer.status
+								FROM team_media_answer JOIN point_task ON team_media_answer.point_task_id = point_task.id WHERE team_id = $1 AND team_media_answer.id = $2`
 )
 
 const (
 	createMediaObjectQuery = `INSERT INTO media_obj (uuid_media, type) VALUES ($1, $2) RETURNING id`
+	getMediaObjectQuery    = `SELECT uuid_media FROM media_obj WHERE id = $1`
 )

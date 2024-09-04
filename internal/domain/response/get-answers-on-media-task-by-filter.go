@@ -9,5 +9,5 @@ type AnswerMediaTask struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
-	Answer      []byte `json:"answer"`
+	PhotoUrl    string `json:"photo_url"`
 }

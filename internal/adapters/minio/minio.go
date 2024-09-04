@@ -44,16 +44,12 @@ func (s *MinioStorage) GetObject(object domain.Object) (domain.Object, error) {
 	defer data.Close()
 
 	object.Data, err = ioutil.ReadAll(data)
-	// buf := new(bytes.Buffer)
-	// _, err = buf.ReadFrom(data)
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetObject",
 		).Errorf("ReadAll Error: %s", err.Error())
 		return domain.Object{}, err
 	}
-
-	// object.Data = buf.Bytes()
 
 	return object, nil
 }

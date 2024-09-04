@@ -83,7 +83,7 @@ func (s *MediaTaskStorage) GetLastMediaTask(teamId int) (task domain.MediaTask, 
 	return task, nil
 }
 
-func (s *MediaTaskStorage) UpdateAnswerOnMediaTask(taskId int, task domain.MediaTask) (err error) {
+func (s *MediaTaskStorage) UpdateAnswerOnMediaTask(taskId int, task domain.MediaAnswer) (err error) {
 	tx, err := s.db.Begin(context.TODO())
 	if err != nil {
 		log.WithField(
@@ -138,12 +138,12 @@ func (s *MediaTaskStorage) GetAnswersOnMediaTasksByFilter(status string) (tasks 
 			&task.ID,
 			&task.Title,
 			&task.Description,
-			&task.PhotoId,
-			&task.PhotoKey,
-			&task.TeamId,
+			&task.Answer.PhotoId,
+			&task.Answer.PhotoKey,
+			&task.Answer.TeamId,
 			&task.Points,
-			&task.Comment,
-			&task.Status,
+			&task.Answer.Comment,
+			&task.Answer.Status,
 		)
 		if err != nil {
 			log.WithField("", "GetAnswersOnMediaTasksByFilter")
@@ -168,12 +168,12 @@ func (s *MediaTaskStorage) GetAllAnswerOnMediaTasks() (tasks []domain.MediaTask,
 			&task.ID,
 			&task.Title,
 			&task.Description,
-			&task.PhotoId,
-			&task.PhotoKey,
-			&task.TeamId,
+			&task.Answer.PhotoId,
+			&task.Answer.PhotoKey,
+			&task.Answer.TeamId,
 			&task.Points,
-			&task.Comment,
-			&task.Status,
+			&task.Answer.Comment,
+			&task.Answer.Status,
 		)
 		if err != nil {
 			log.WithField("", "GetAllAnswerOnMediaTasks")
@@ -185,8 +185,8 @@ func (s *MediaTaskStorage) GetAllAnswerOnMediaTasks() (tasks []domain.MediaTask,
 	return tasks, nil
 }
 
-func (s *MediaTaskStorage) UpdatePointsOnMediaTask(status string, taskId int, points int) (err error) {
-	_, err = s.db.Exec(context.TODO(), setPointsOnMediaTask, points, status, taskId)
+func (s *MediaTaskStorage) UpdatePointsOnMediaTask(status string, taskId int, points int, comment string) (err error) {
+	_, err = s.db.Exec(context.TODO(), setPointsOnMediaTask, points, status, comment, taskId)
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdatePointsOnMediaTask",
@@ -230,12 +230,12 @@ func (s *MediaTaskStorage) GetAnswerOnMediaTaskById(answerMediaTaskId int) (task
 		&task.ID,
 		&task.Title,
 		&task.Description,
-		&task.PhotoId,
-		&task.PhotoKey,
-		&task.TeamId,
+		&task.Answer.PhotoId,
+		&task.Answer.PhotoKey,
+		&task.Answer.TeamId,
 		&task.Points,
-		&task.Comment,
-		&task.Status,
+		&task.Answer.Comment,
+		&task.Answer.Status,
 	)
 	if err != nil {
 		log.WithField(
@@ -269,4 +269,72 @@ func (s *MediaTaskStorage) GetUpdateTimeAnswerOnMediaTask(taskId int) (time time
 	}
 
 	return time, nil
+}
+
+func (s *MediaTaskStorage) GetAllMediaTaskByTeam(teamId int) (tasks []domain.MediaTask, err error) {
+	rows, err := s.db.Query(context.TODO(), getAllMediaTaskByTeam, teamId)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetAllMediaTaskByTeam",
+		).Errorf("ошибка получения тасок команды: %s", err.Error())
+		return nil, err
+	}
+
+	for rows.Next() {
+		var task domain.MediaTask
+		err = rows.Scan(
+			&task.ID,
+			&task.Title,
+			&task.Description,
+			&task.Answer.Id,
+			&task.Answer.Points,
+			&task.Answer.Comment,
+			&task.Answer.Status,
+		)
+		if err != nil {
+			log.WithField(
+				"origin.function", "GetAllMediaTaskByTeam",
+			).Errorf("ошибка чтения тасок команды: %s", err.Error())
+			return nil, err
+		}
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
+
+func (s *MediaTaskStorage) GetMediaTaskByTeamById(teamId int, answerId int) (task domain.MediaTask, err error) {
+	err = s.db.QueryRow(context.TODO(), getMediaTaskByTeamById, teamId, answerId).Scan(
+		&task.ID,
+		&task.Title,
+		&task.Description,
+		&task.VideoId,
+		&task.Answer.Id,
+		&task.Answer.Points,
+		&task.Answer.Comment,
+		&task.Answer.PhotoId,
+		&task.Answer.Status)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMediaTaskByTeamById",
+		).Errorf("ошибка получения таски: %s", err.Error())
+		return domain.MediaTask{}, err
+	}
+
+	err = s.db.QueryRow(context.TODO(), getMediaObjectQuery, task.VideoId).Scan(&task.VideoKey)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMediaTaskByTeamById",
+		).Errorf("ошибка получения ключа: %s", err.Error())
+		return domain.MediaTask{}, err
+	}
+
+	err = s.db.QueryRow(context.TODO(), getMediaObjectQuery, task.Answer.PhotoId).Scan(&task.Answer.PhotoKey)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMediaTaskByTeamById",
+		).Errorf("ошибка получения ключа: %s", err.Error())
+		return domain.MediaTask{}, err
+	}
+
+	return task, nil
 }

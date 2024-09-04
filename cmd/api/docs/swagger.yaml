@@ -76,10 +76,62 @@ definitions:
       new_team_name:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.AnswerMediaTask:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      photo_url:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.CreateTeam:
     properties:
       team_id:
         type: integer
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetAnswerOnTextTaskByID:
+    properties:
+      comment:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      photo_url:
+        type: string
+      points:
+        type: integer
+      status:
+        type: string
+      team_id:
+        type: integer
+      title:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetAnswersOnMediaTaskByFilter:
+    properties:
+      answers:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.AnswerMediaTask'
+        type: array
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetMediaTask:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      points:
+        type: integer
+      title:
+        type: string
+      video_url:
+        type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam:
     properties:
@@ -348,6 +400,214 @@ paths:
       summary: GetUserById
       tags:
       - user
+  /api/admin/task/media/answer:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: string status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetAnswersOnMediaTaskByFilter'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get Answer On Media By Filter
+      tags:
+      - task
+  /api/admin/task/media/answer/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetAnswerOnTextTaskByID'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get Answer On Media Task By Id
+      tags:
+      - task
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update Status Answer On Media Task
+      tags:
+      - task
+  /api/task/media/answer:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get All Media Task By Team
+      tags:
+      - task
+  /api/task/media/answer/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: answer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get Media Task By Team By Id
+      tags:
+      - task
   /sec:
     get:
       consumes:
@@ -527,9 +787,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetMediaTask'
         "400":
           description: bad request
           schema:
@@ -548,11 +808,11 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: CreateAnswerOnMediaTask
+      summary: Get media task
       tags:
       - task
-  /task/media/answer:
-    get:
+  /task/media/answer/{id}:
+    put:
       consumes:
       - application/json
       parameters:
@@ -591,7 +851,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: GetAnswerOnMediaTaskById
+      summary: Update Answer On Media Task By Id
       tags:
       - task
   /task/text:
@@ -633,48 +893,6 @@ paths:
       tags:
       - task
   /task/text/answer:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: answer ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: bad request
-          schema:
-            type: string
-        "401":
-          description: not authorized
-          schema:
-            type: string
-        "403":
-          description: not rights
-          schema:
-            type: string
-        "500":
-          description: internal server error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: UpdateStatusAnswerOnMediaTask
-      tags:
-      - task
     put:
       consumes:
       - application/json
@@ -714,7 +932,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: UpdateAnswerOnMediaTaskById
+      summary: UpdateAnswerOnTextTaskById
       tags:
       - task
   /team:

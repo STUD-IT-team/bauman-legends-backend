@@ -133,8 +133,11 @@ func main() {
 
 	r.Get("/api/task/text", handler.GetTextTask)
 	r.Put("/api/task/text", handler.UpdateAnswerOnTextTaskById)
+
 	r.Get("/api/task/media", handler.GetMediaTask)
-	r.Put("/api/task/media", handler.UpdateAnswerOnMediaTaskById)
+	r.Put("/api/task/media/answer/{id}", handler.UpdateAnswerOnMediaTaskById)
+	r.Get("/api/task/media/answer", handler.GetAllMediaTaskByTeam)
+	r.Get("/api/task/media/answer/{id}", handler.GetMediaTaskByTeamById)
 
 	r.Get("/api/admin/task/media/answer", handler.GetAnswerOnMediaByFilter)
 	r.Get("/api/admin/task/media/answer/{id}", handler.GetAnswerOnMediaTaskById)

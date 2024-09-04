@@ -182,19 +182,19 @@ func ParseUpdateAnswerOnTextTask(req request.UpdateAnswerOnTextTaskByID) *domain
 	}
 }
 
-func MakeGetMediaTaskResponse(t domain.MediaTask, o domain.Object) *response.GetMediaTask {
+func MakeGetMediaTaskResponse(t domain.MediaTask) *response.GetMediaTask {
 	return &response.GetMediaTask{
 		Id:          t.ID,
 		Title:       t.Title,
 		Description: t.Description,
 		Points:      t.Points,
-		Video:       o.Data,
+		VideoUrl:    t.VideoUrl,
 	}
 }
 
-func ParseUpdateAnswerOnMediaTask(req request.UpdateAnswerOnMediaTask) *domain.MediaTask {
-	return &domain.MediaTask{
-		ID: req.ID,
+func ParseUpdateAnswerOnMediaTask(req request.UpdateAnswerOnMediaTask) *domain.MediaAnswer {
+	return &domain.MediaAnswer{
+		Id: req.ID,
 	}
 }
 
@@ -204,10 +204,10 @@ func MakeGetAnswerOnMediaTask(d domain.MediaTask) *response.GetAnswerOnTextTaskB
 		Title:       d.Title,
 		Description: d.Description,
 		Points:      d.Points,
-		Answer:      d.Answer,
-		Comment:     d.Comment,
-		Status:      d.Status,
-		TeamId:      d.TeamId,
+		PhotoUrl:    d.Answer.PhotoUrl,
+		Comment:     d.Answer.Comment,
+		Status:      d.Answer.Status,
+		TeamId:      d.Answer.TeamId,
 	}
 }
 
@@ -218,10 +218,41 @@ func MakeGetAnswerOnMediaTaskByFilter(dom []domain.MediaTask) *response.GetAnswe
 			Id:          d.ID,
 			Title:       d.Title,
 			Description: d.Description,
-			Status:      d.Status,
-			Answer:      d.Answer,
+			Status:      d.Answer.Status,
+			PhotoUrl:    d.Answer.PhotoUrl,
 		}
 		answers = append(answers, answer)
 	}
 	return &response.GetAnswersOnMediaTaskByFilter{Answers: answers}
+}
+
+func MakeGetAllAnswerByTeam(dom []domain.MediaTask) *response.GetAllAnswerByTeam {
+	var answers []response.AnswerByTeam
+	for _, d := range dom {
+		answer := response.AnswerByTeam{
+			Id:          d.ID,
+			Title:       d.Title,
+			Description: d.Description,
+			AnswerId:    d.Answer.Id,
+			Points:      d.Points,
+			Status:      d.Answer.Status,
+			Comment:     d.Answer.Comment,
+		}
+		answers = append(answers, answer)
+	}
+
+	return &response.GetAllAnswerByTeam{Answers: answers}
+}
+
+func MakeGetAnswersByTeamById(dom domain.MediaTask) *response.GetAnswerByTeamByID {
+	return &response.GetAnswerByTeamByID{
+		Id:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+		Status:      dom.Answer.Status,
+		Comment:     dom.Answer.Comment,
+		VideoUrl:    dom.VideoUrl,
+		PhotoUrl:    dom.Answer.PhotoUrl,
+	}
 }

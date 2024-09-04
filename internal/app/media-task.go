@@ -73,18 +73,9 @@ func (s *MediaTaskService) GetMediaTask(session request.Session) (response.GetMe
 		}
 	}
 
-	video := domain.Object{
-		BucketName: "video-task",
-		ObjectName: task.VideoKey,
-		TypeData:   "video",
-	}
+	task.VideoUrl = consts.MinioUrl + consts.VideoTaskBucket + "/" + task.VideoKey
 
-	video, err = s.storage.GetObject(video)
-	if err != nil {
-		return response.GetMediaTask{}, err
-	}
-
-	return *mapper.MakeGetMediaTaskResponse(task, video), nil
+	return *mapper.MakeGetMediaTaskResponse(task), nil
 }
 
 func (s *MediaTaskService) UpdateAnswerOnMediaTask(req request.UpdateAnswerOnMediaTask, session request.Session) error {
@@ -116,23 +107,23 @@ func (s *MediaTaskService) UpdateAnswerOnMediaTask(req request.UpdateAnswerOnMed
 		return errors.New("invalid id")
 	}
 
-	task := *mapper.ParseUpdateAnswerOnMediaTask(req)
-	task.TeamId = teamId
+	answer := *mapper.ParseUpdateAnswerOnMediaTask(req)
+	answer.TeamId = teamId
 
 	photo := domain.Object{
-		BucketName: "photo-answer",
+		BucketName: consts.PhotoAnswerBucket,
 		ObjectName: uuid.New().String(),
-		TypeData:   "png",
+		TypeData:   req.TypeData,
 		Size:       int64(len(req.Answer)),
 		Data:       req.Answer,
 	}
 
-	task.PhotoKey, err = s.storage.PutObject(photo)
+	answer.PhotoKey, err = s.storage.PutObject(photo)
 	if err != nil {
 		return err
 	}
 
-	err = s.storage.UpdateAnswerOnMediaTask(req.ID, task)
+	err = s.storage.UpdateAnswerOnMediaTask(req.ID, answer)
 	if err != nil {
 		return err
 	}
@@ -178,18 +169,8 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskByFilter(req request.GetAnswerOn
 		}
 	}
 
-	for i, answer := range answers {
-		answerObj := domain.Object{
-			BucketName: "photo-answer",
-			ObjectName: answer.PhotoKey,
-		}
-
-		answerObj, err = s.storage.GetObject(answerObj)
-		if err != nil {
-			return response.GetAnswersOnMediaTaskByFilter{}, err
-		}
-
-		answers[i].Answer = answerObj.Data
+	for i, _ := range answers {
+		answers[i].Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answers[i].Answer.PhotoKey
 	}
 
 	return *mapper.MakeGetAnswerOnMediaTaskByFilter(answers), nil
@@ -224,17 +205,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskById(req request.GetAnswerOnMedi
 		return response.GetAnswerOnTextTaskByID{}, err
 	}
 
-	answerObj := domain.Object{
-		BucketName: "photo-answer",
-		ObjectName: answer.PhotoKey,
-	}
-
-	answerObj, err = s.storage.GetObject(answerObj)
-	if err != nil {
-		return response.GetAnswerOnTextTaskByID{}, err
-	}
-
-	answer.Answer = answerObj.Data
+	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey
 
 	return *mapper.MakeGetAnswerOnMediaTask(answer), nil
 }
@@ -293,10 +264,69 @@ func (s *MediaTaskService) UpdatePointsOnAnswerOnMediaTask(session request.Sessi
 		status = consts.WrongStatus
 	}
 
-	err = s.storage.UpdatePointsOnMediaTask(status, taskId, points)
+	err = s.storage.UpdatePointsOnMediaTask(status, taskId, points, req.Comment)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *MediaTaskService) GetAllAnswersByTeam(session request.Session) (response.GetAllAnswerByTeam, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: session.Value})
+	if err != nil {
+		return response.GetAllAnswerByTeam{}, err
+	}
+
+	if !res.Valid {
+		return response.GetAllAnswerByTeam{}, errors.New("invalid token")
+	}
+
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return response.GetAllAnswerByTeam{}, err
+	}
+
+	team, err := s.storage.GetTeamByUserId(userId)
+	if err != nil {
+		return response.GetAllAnswerByTeam{}, err
+	}
+
+	answers, err := s.storage.GetAllMediaTaskByTeam(team.ID)
+	if err != nil {
+		return response.GetAllAnswerByTeam{}, err
+	}
+
+	return *mapper.MakeGetAllAnswerByTeam(answers), nil
+}
+
+func (s *MediaTaskService) GetAnswersByTeamById(session request.Session, req request.GetAnswerByTeamByID) (response.GetAnswerByTeamByID, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: session.Value})
+	if err != nil {
+		return response.GetAnswerByTeamByID{}, err
+	}
+
+	if !res.Valid {
+		return response.GetAnswerByTeamByID{}, errors.New("invalid token")
+	}
+
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return response.GetAnswerByTeamByID{}, err
+	}
+
+	team, err := s.storage.GetTeamByUserId(userId)
+	if err != nil {
+		return response.GetAnswerByTeamByID{}, err
+	}
+
+	answer, err := s.storage.GetMediaTaskByTeamById(team.ID, req.Id)
+	if err != nil {
+		return response.GetAnswerByTeamByID{}, err
+	}
+
+	answer.VideoUrl = consts.MinioUrl + consts.VideoTaskBucket + "/" + answer.VideoKey
+	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey
+
+	return *mapper.MakeGetAnswersByTeamById(answer), nil
 }

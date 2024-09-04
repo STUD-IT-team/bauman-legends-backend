@@ -5,7 +5,7 @@ type GetAnswerOnTextTaskByID struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Points      int    `json:"points"`
-	Answer      []byte `json:"answer"`
+	PhotoUrl    string `json:"photo_url"`
 	Comment     string `json:"comment"`
 	Status      string `json:"status"`
 	TeamId      int    `json:"team_id"`
