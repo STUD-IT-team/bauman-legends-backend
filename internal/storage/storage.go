@@ -5,6 +5,7 @@ type Storage interface {
 	MediaTaskStorage
 	TeamStorage
 	ObjectStorage
+	UserStorage
 }
 
 type storage struct {
@@ -12,13 +13,15 @@ type storage struct {
 	MediaTask MediaTaskStorage
 	Team      TeamStorage
 	Object    ObjectStorage
+	User      UserStorage
 }
 
-func NewStorage(team TeamStorage, textTask TextTaskStorage, mediaTask MediaTaskStorage, object ObjectStorage) Storage {
+func NewStorage(team TeamStorage, textTask TextTaskStorage, mediaTask MediaTaskStorage, object ObjectStorage, user UserStorage) Storage {
 	return &storage{
 		TextTask:  textTask,
 		Team:      team,
 		MediaTask: mediaTask,
 		Object:    object,
+		User:      user,
 	}
 }

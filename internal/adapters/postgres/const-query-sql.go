@@ -121,3 +121,10 @@ const (
 	createMediaObjectQuery = `INSERT INTO media_obj (uuid_media, type) VALUES ($1, $2) RETURNING id`
 	getMediaObjectQuery    = `SELECT uuid_media FROM media_obj WHERE id = $1`
 )
+
+const (
+	getAllUsersQuery          = `SELECT "user".id, R.type, "user".name, "group", email, telegram, vk, phone_number, T.name FROM "user" JOIN public.role R ON R.id = "user".role_id JOIN public.team T ON T.id = "user".team_id WHERE role_id IN (1,3)`
+	getUserWithoutTeam        = `SELECT "user".id, R.type, "user".name, "group", email, telegram, vk, phone_number, T.name FROM "user" JOIN public.team T ON T.id = "user".team_id JOIN public.role R ON R.id = "user".role_id WHERE team_id IS NULL AND role_id IN (1, 3)`
+	getUserWithCountTeamQuery = `SELECT "user".id, R.type, "user".name, "group", email, telegram, vk, phone_number, T.name FROM "user"  JOIN public.team T ON T.id = "user".team_id JOIN public.role R ON R.id = "user".role_id WHERE team_id IN (SELECT "user".team_id FROM "user" GROUP BY team_id HAVING COUNT(*) = $1) AND role_id IN (1, 3)`
+	getUserByIdQuery          = `SELECT "user".id, R.type, "user".name, "group", email, telegram, vk, phone_number, T.name FROM "user"  JOIN public.team T ON T.id = "user".team_id JOIN public.role R ON R.id = "user".role_id WHERE id = $1 AND role_id IN (1, 3)`
+)

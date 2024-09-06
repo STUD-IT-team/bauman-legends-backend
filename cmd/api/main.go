@@ -89,6 +89,15 @@ func main() {
 		)
 	}
 
+	userStorage, err := postgres.NewUserStorage(pgString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
 	objectStorage, err := minio.NewMinioStorage("localhost:9000", "user", "password", false)
 	if err != nil {
 		log.WithField(
@@ -98,14 +107,15 @@ func main() {
 		)
 	}
 
-	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage)
+	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage, userStorage)
 
 	teams := app.NewTeamService(conn, storage)
 	textTask := app.NewTextTaskService(conn, storage)
 	mediaTask := app.NewMediaTaskService(conn, storage)
+	users := app.NewUserService(conn, storage)
 
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api, teams, textTask, mediaTask)
+	handler := handlers.NewHTTPHandler(api, teams, textTask, mediaTask, users)
 
 	r := chi.NewRouter()
 
@@ -115,8 +125,8 @@ func main() {
 	r.Get("/api/user", handler.GetProfile)
 	r.Put("/api/user", handler.UpdateProfile)
 
-	// r.Get("/api/admin/user", handler.GetUsersByFilter)
-	// r.Get("/api/admin/user/{id}", handler.GetUserById)
+	r.Get("/api/admin/user", handler.GetUsersByFilter)
+	r.Get("/api/admin/user/{id}", handler.GetUserById)
 
 	r.Post("/api/team", handler.CreateTeam)
 	r.Delete("/api/team", handler.DeleteTeam)

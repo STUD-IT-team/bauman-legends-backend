@@ -7,11 +7,3 @@ type Team struct {
 	Captain Member
 	Points  int `json:"points"`
 }
-
-type Member struct {
-	ID     int    `json:"id"`
-	RoleId int    `json:"roleId"`
-	Name   string `json:"name"`
-	Group  string `json:"group"`
-	Email  string `json:"email"`
-}

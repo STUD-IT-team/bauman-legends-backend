@@ -256,3 +256,40 @@ func MakeGetAnswersByTeamById(dom domain.MediaTask) *response.GetAnswerByTeamByI
 		PhotoUrl:    dom.Answer.PhotoUrl,
 	}
 }
+
+func MakeGetUsersByFilter(dom []domain.Member) *response.GetUsersByFilter {
+	var users []response.UserByFilter
+	for _, d := range dom {
+		user := response.UserByFilter{
+			Id:          d.ID,
+			Name:        d.Name,
+			Email:       d.Email,
+			Group:       d.Group,
+			Telegram:    d.Telegram,
+			VK:          d.VK,
+			PhoneNumber: d.PhoneNumber,
+			TeamName:    d.TeamName,
+			Role:        d.Role,
+		}
+
+		users = append(users, user)
+	}
+
+	return &response.GetUsersByFilter{
+		Users: users,
+	}
+}
+
+func MakeGetUserById(d domain.Member) *response.GetUserById {
+	return &response.GetUserById{
+		Id:          d.ID,
+		Name:        d.Name,
+		Email:       d.Email,
+		Group:       d.Group,
+		Telegram:    d.Telegram,
+		VK:          d.VK,
+		PhoneNumber: d.PhoneNumber,
+		Team:        d.TeamName,
+		Role:        d.Role,
+	}
+}

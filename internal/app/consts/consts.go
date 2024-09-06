@@ -36,11 +36,11 @@ const (
 )
 
 const (
-	StartTextTask      = "18.09.2024 10:00:00"
-	EndTextTask        = "24.09.2024 23.59.59"
-	FirstDayMediaTask  = "25.09.2024 00:00:00"
-	SecondDayMediaTask = "26.09.2024 00:00:00"
-	ThirdDayMediaTask  = "27.09.2024 00:00:00"
+	StartTextTask      = "16.09.2024 10:00:00"
+	EndTextTask        = "22.09.2024 23.59.59"
+	FirstDayMediaTask  = "23.09.2024 00:00:00"
+	SecondDayMediaTask = "24.09.2024 00:00:00"
+	ThirdDayMediaTask  = "25.09.2024 00:00:00"
 )
 
 const (
@@ -49,9 +49,9 @@ const (
 	ThirdDayCoefficient  = 1.0
 )
 
-var FirstDayMediaTaskTime = time.Date(2024, time.September, 25, 0, 0, 0, 0, time.UTC)
-var SecondDayMediaTaskTime = time.Date(2024, time.September, 26, 0, 0, 0, 0, time.UTC)
-var ThirdDayMediaTaskTime = time.Date(2024, time.September, 27, 0, 0, 0, 0, time.UTC)
+var FirstDayMediaTaskTime = time.Date(2024, time.September, 23, 0, 0, 0, 0, time.UTC)
+var SecondDayMediaTaskTime = time.Date(2024, time.September, 24, 0, 0, 0, 0, time.UTC)
+var ThirdDayMediaTaskTime = time.Date(2024, time.September, 25, 0, 0, 0, 0, time.UTC)
 
 const (
 	MinioUrl          = "http://localhost:9000/"

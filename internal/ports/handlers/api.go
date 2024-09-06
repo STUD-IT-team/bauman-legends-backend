@@ -22,14 +22,16 @@ type HTTPHandler struct {
 	Teams     *app.TeamService
 	TextTask  *app.TextTaskService
 	MediaTask *app.MediaTaskService
+	Users     *app.UserService
 }
 
-func NewHTTPHandler(api *app.Api, teams *app.TeamService, textTask *app.TextTaskService, mediaTask *app.MediaTaskService) *HTTPHandler {
+func NewHTTPHandler(api *app.Api, teams *app.TeamService, textTask *app.TextTaskService, mediaTask *app.MediaTaskService, user *app.UserService) *HTTPHandler {
 	return &HTTPHandler{
 		Api:       api,
 		Teams:     teams,
 		TextTask:  textTask,
 		MediaTask: mediaTask,
+		Users:     user,
 	}
 }
 
@@ -345,13 +347,59 @@ func (h *HTTPHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
 // @Param        team         query     bool        false  "boolean team"
+// @Param        count        query     int true "count members in team"
 // @Success      200  {string}  string    "ok"
 // @Failure      400  {string}  string    "bad request"
 // @Failure		 403  {string}  string	  "not rights"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /admin/user [get]
-func (h *HTTPHandler) GetUsersByFilter(w http.ResponseWriter, r *http.Request) {}
+func (h *HTTPHandler) GetUsersByFilter(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUsersByFilter",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	team := r.URL.Query().Get("team")
+	count, err := strconv.Atoi(r.URL.Query().Get("count"))
+	if err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	req := request.GetUsersByFilter{
+		CountInTeam: count,
+		WithTeam:    team != "false",
+	}
+
+	res, err := h.Users.GetUsersByFilter(request.Session{Value: cookie.Value}, req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUsersByFilter",
+		).Errorf(err.Error())
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetUsersByFilter",
+		).Errorf(
+			"Ошибка при отправке данных пользователей: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 // GetUserById
 // @Summary      GetUserById
@@ -367,8 +415,54 @@ func (h *HTTPHandler) GetUsersByFilter(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {string}  string    "not authorized"
 // @Failure		 403  {string}  string	  "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /admin/user [get]
-func (h *HTTPHandler) GetUserById(w http.ResponseWriter, r *http.Request) {}
+// @Router       /admin/user/{id} [get]
+func (h *HTTPHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserById",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserById",
+		).Errorf(err.Error())
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	req := request.GetUserById{
+		Id: id,
+	}
+
+	res, err := h.Users.GetUserById(request.Session{Value: cookie.Value}, req)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetUserById",
+		).Errorf(err.Error())
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetUserById",
+		).Errorf(
+			"Ошибка при отправке данных пользователя: %s",
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 /* func (h *HTTPHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")

@@ -360,6 +360,54 @@ paths:
     get:
       consumes:
       - application/json
+      description: Get info about users by filter (only admin)
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: boolean team
+        in: query
+        name: team
+        type: boolean
+      - description: count members in team
+        in: query
+        name: count
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetUsersByFilter
+      tags:
+      - user
+  /admin/user/{id}:
+    get:
+      consumes:
+      - application/json
       description: Get info about users by id (only admin)
       parameters:
       - description: Authorization
