@@ -7,10 +7,42 @@ services:
     env_file:
       - ./db.env
     volumes:
-      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+    #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
       - ./db-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5434:5432"
+
+  migrator:
+    container_name: bl_migrator
+    depends_on:
+      - database
+    env_file:
+      - migrator.env
+    build:
+      context: ../
+      dockerfile: ./migrations/Dockerfile
+
+  minio:
+    container_name: minio_container
+    hostname: minio
+    image: minio/minio:latest
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - minio.env
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9000/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   api:
     container_name: "${API_DN}"
@@ -36,6 +68,7 @@ services:
       - auth.env
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
+
 
 networks:
   default:

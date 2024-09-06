@@ -100,51 +100,196 @@ func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.Change
 	}
 }
 
-func MakeHttpResponseGetTeam(team *domain.Team) *response.GetTeam {
-	var memb []response.Member
-	for i := range team.Members {
-		role := 0
-		if team.Members[i].Role.Valid {
-			role = int(team.Members[i].Role.Int64)
-		}
-		memb = append(memb, response.Member{
-			Id:   team.Members[i].Id,
-			Name: team.Members[i].Name,
-			Role: role,
-		})
-	}
+func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
 	return &response.GetTeam{
-		TeamId:  team.TeamId,
-		Title:   team.Title,
-		Points:  team.Points,
-		Members: memb,
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
 	}
 }
 
-func MakeGetTaskResponse(in domain.Task) *response.GetTask {
-	return &response.GetTask{
-		Title:        in.Title,
-		Text:         in.Description,
-		TypeId:       in.TypeID,
-		TypeName:     in.TypeName,
-		MaxPoints:    in.MaxPoints,
-		MinPoints:    in.MinPoints,
-		TimeStarted:  in.StartedTime,
-		AnswerTypeId: in.AnswerTypeID,
+func MakeMembersResponse(dom []domain.Member) *[]response.Member {
+	var members []response.Member
+	for _, member := range dom {
+		mem := response.Member{
+			Id:    member.ID,
+			Name:  member.Name,
+			Grope: member.Group,
+			Email: member.Email,
+		}
+		members = append(members, mem)
+	}
+	return &members
+}
+
+func MakeGetTeamsResponse(dom []domain.Team) *response.GetTeamsByFilter {
+	var teams []response.GetTeam
+	for _, team := range dom {
+		t := *MakeGetTeamResponse(team)
+		teams = append(teams, t)
+	}
+	return &response.GetTeamsByFilter{Teams: teams}
+}
+
+func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
+	return &response.GetTeamByID{
+		ID:     dom.ID,
+		Name:   dom.Name,
+		Points: dom.Points,
+		Captain: response.Member{
+			Id:    dom.Captain.ID,
+			Name:  dom.Captain.Name,
+			Grope: dom.Captain.Group,
+			Email: dom.Captain.Email,
+		},
+		Members: *MakeMembersResponse(dom.Members),
 	}
 }
-func MakeTaskTypesResponse(in domain.TaskTypes) response.GetTaskTypes {
-	out := make([]response.TaskType, 0, len(in))
 
-	for _, taskType := range in {
-		out = append(out, response.TaskType{
-			Name:     taskType.Title,
-			ID:       taskType.ID,
-			IsActive: taskType.IsActive,
-		})
+func MakeGetTextTaskResponse(dom domain.TextTask) *response.GetTextTask {
+	return &response.GetTextTask{
+		ID:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+	}
+}
+
+func MakeGetAnswerOnTextTask(dom domain.TextTask) *response.GetAnswerOnTextTaskByID {
+	return &response.GetAnswerOnTextTaskByID{
+		ID:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+	}
+}
+
+func ParseGetTextTaskRequest(req *request.GetTextTask) *domain.TextTask {
+	return &domain.TextTask{}
+}
+
+func ParseUpdateAnswerOnTextTask(req request.UpdateAnswerOnTextTaskByID) *domain.TextTask {
+	return &domain.TextTask{
+		ID:     req.ID,
+		Answer: req.Answer,
+	}
+}
+
+func MakeGetMediaTaskResponse(t domain.MediaTask) *response.GetMediaTask {
+	return &response.GetMediaTask{
+		Id:          t.ID,
+		Title:       t.Title,
+		Description: t.Description,
+		Points:      t.Points,
+		VideoUrl:    t.VideoUrl,
+	}
+}
+
+func ParseUpdateAnswerOnMediaTask(req request.UpdateAnswerOnMediaTask) *domain.MediaAnswer {
+	return &domain.MediaAnswer{
+		Id: req.ID,
+	}
+}
+
+func MakeGetAnswerOnMediaTask(d domain.MediaTask) *response.GetAnswerOnTextTaskByID {
+	return &response.GetAnswerOnTextTaskByID{
+		ID:          d.ID,
+		Title:       d.Title,
+		Description: d.Description,
+		Points:      d.Points,
+		PhotoUrl:    d.Answer.PhotoUrl,
+		Comment:     d.Answer.Comment,
+		Status:      d.Answer.Status,
+		TeamId:      d.Answer.TeamId,
+	}
+}
+
+func MakeGetAnswerOnMediaTaskByFilter(dom []domain.MediaTask) *response.GetAnswersOnMediaTaskByFilter {
+	var answers []response.AnswerMediaTask
+	for _, d := range dom {
+		answer := response.AnswerMediaTask{
+			Id:          d.ID,
+			Title:       d.Title,
+			Description: d.Description,
+			Status:      d.Answer.Status,
+			PhotoUrl:    d.Answer.PhotoUrl,
+		}
+		answers = append(answers, answer)
+	}
+	return &response.GetAnswersOnMediaTaskByFilter{Answers: answers}
+}
+
+func MakeGetAllAnswerByTeam(dom []domain.MediaTask) *response.GetAllAnswerByTeam {
+	var answers []response.AnswerByTeam
+	for _, d := range dom {
+		answer := response.AnswerByTeam{
+			Id:          d.ID,
+			Title:       d.Title,
+			Description: d.Description,
+			AnswerId:    d.Answer.Id,
+			Points:      d.Points,
+			Status:      d.Answer.Status,
+			Comment:     d.Answer.Comment,
+		}
+		answers = append(answers, answer)
 	}
 
-	return response.GetTaskTypes{
-		TaskTypes: out,
+	return &response.GetAllAnswerByTeam{Answers: answers}
+}
+
+func MakeGetAnswersByTeamById(dom domain.MediaTask) *response.GetAnswerByTeamByID {
+	return &response.GetAnswerByTeamByID{
+		Id:          dom.ID,
+		Title:       dom.Title,
+		Description: dom.Description,
+		Points:      dom.Points,
+		Status:      dom.Answer.Status,
+		Comment:     dom.Answer.Comment,
+		VideoUrl:    dom.VideoUrl,
+		PhotoUrl:    dom.Answer.PhotoUrl,
+	}
+}
+
+func MakeGetUsersByFilter(dom []domain.Member) *response.GetUsersByFilter {
+	var users []response.UserByFilter
+	for _, d := range dom {
+		user := response.UserByFilter{
+			Id:          d.ID,
+			Name:        d.Name,
+			Email:       d.Email,
+			Group:       d.Group,
+			Telegram:    d.Telegram,
+			VK:          d.VK,
+			PhoneNumber: d.PhoneNumber,
+			TeamName:    d.TeamName,
+			Role:        d.Role,
+		}
+
+		users = append(users, user)
+	}
+
+	return &response.GetUsersByFilter{
+		Users: users,
+	}
+}
+
+func MakeGetUserById(d domain.Member) *response.GetUserById {
+	return &response.GetUserById{
+		Id:          d.ID,
+		Name:        d.Name,
+		Email:       d.Email,
+		Group:       d.Group,
+		Telegram:    d.Telegram,
+		VK:          d.VK,
+		PhoneNumber: d.PhoneNumber,
+		Team:        d.TeamName,
+		Role:        d.Role,
 	}
 }

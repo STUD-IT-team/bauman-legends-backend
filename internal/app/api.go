@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 )
 
 type Api struct {
