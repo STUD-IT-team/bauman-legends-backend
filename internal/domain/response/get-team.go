@@ -1,11 +1,11 @@
 package response
 
 type GetTeam struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	Members []Member
-	Captain Member
-	Points  int `json:"points"`
+	ID      int      `json:"id"`
+	Name    string   `json:"name"`
+	Members []Member `json:"members"`
+	Captain Member   `json:"captain"`
+	Points  int      `json:"points"`
 }
 
 type Member struct {
