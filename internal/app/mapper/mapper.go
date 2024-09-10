@@ -101,6 +101,10 @@ func MakeChangePasswordRequest(req *grpc2.ChangePasswordRequest) *request.Change
 }
 
 func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
+	member := *MakeMembersResponse(dom.Members)
+	if member == nil {
+		member = make([]response.Member, 0)
+	}
 	return &response.GetTeam{
 		ID:     dom.ID,
 		Name:   dom.Name,
@@ -111,7 +115,7 @@ func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
 			Grope: dom.Captain.Group,
 			Email: dom.Captain.Email,
 		},
-		Members: *MakeMembersResponse(dom.Members),
+		Members: member,
 	}
 }
 
@@ -139,6 +143,10 @@ func MakeGetTeamsResponse(dom []domain.Team) *response.GetTeamsByFilter {
 }
 
 func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
+	member := *MakeMembersResponse(dom.Members)
+	if member == nil {
+		member = make([]response.Member, 0)
+	}
 	return &response.GetTeamByID{
 		ID:     dom.ID,
 		Name:   dom.Name,
@@ -149,7 +157,7 @@ func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
 			Grope: dom.Captain.Group,
 			Email: dom.Captain.Email,
 		},
-		Members: *MakeMembersResponse(dom.Members),
+		Members: member,
 	}
 }
 
