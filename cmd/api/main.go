@@ -107,7 +107,16 @@ func main() {
 		)
 	}
 
-	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage, userStorage)
+	masterStorage, err := postgres.NewMasterClass(pgString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
+
+	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage, userStorage, masterStorage)
 
 	teams := app.NewTeamService(conn, storage)
 	textTask := app.NewTextTaskService(conn, storage)

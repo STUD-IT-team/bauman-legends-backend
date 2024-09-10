@@ -1122,12 +1122,12 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Success      200  {string}  string    "ok"
+// @Success      200    object     response.GetTextTask
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /task/text [post]
+// @Router       /task/text [get]
 func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
