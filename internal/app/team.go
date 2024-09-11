@@ -234,7 +234,7 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam, ses request.
 		return err
 	}
 
-	teamId, err := strconv.Atoi(profile.Id)
+	teamId, err := strconv.Atoi(profile.TeamID)
 	if err != nil {
 		return err
 	}
