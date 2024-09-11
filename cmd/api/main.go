@@ -25,7 +25,7 @@ import (
 // @version         1.0
 // @description     This is backend server for bauman legends 2024.
 
-// @host      localhost:3000
+// @host      localhost:3010
 // @BasePath  /api/
 
 // @securityDefinitions.basic  BasicAuth
@@ -170,7 +170,7 @@ func main() {
 	)
 
 	s := &http.Server{
-		Addr:           ":3000",
+		Addr:           ":3010",
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
