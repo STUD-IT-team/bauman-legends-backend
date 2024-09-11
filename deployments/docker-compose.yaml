@@ -7,10 +7,12 @@ services:
     env_file:
       - ./db.env
     volumes:
-    #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
       - ./db-data:/var/lib/postgresql/data
-    ports:
-      - "5434:5432"
+    #ports:
+    #  - "5434:5432"
+    networks:
+      - internal-back
 
   migrator:
     container_name: bl_migrator
@@ -21,15 +23,19 @@ services:
     build:
       context: ../
       dockerfile: ./migrations/Dockerfile
+    networks:
+      - internal-back
 
   minio:
     container_name: minio_container
     hostname: minio
     image: minio/minio:latest
     command: server --console-address ":9001" /data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    #ports:
+    #  - "9000:9000"
+    #  - "9001:9001"
+    networks:
+      - internal-back
     env_file:
       - minio.env
     healthcheck:
@@ -53,8 +59,11 @@ services:
       dockerfile: cmd/api/Dockerfile
     env_file:
       - .env
-    ports:
-      - "${API_PORT}:${API_PORT}"
+    networks:
+      - front-back
+      - internal-back
+    #ports:
+    #  - "${API_PORT}:${API_PORT}"
 
   auth:
     container_name: "${AUTH_DN}"
@@ -66,10 +75,14 @@ services:
     env_file:
       - .env
       - auth.env
-    ports:
-      - "${AUTH_PORT}:${AUTH_PORT}"
+    #ports:
+    #  - "${AUTH_PORT}:${AUTH_PORT}"
+    networks:
+      - internal-back
 
 
 networks:
-  default:
-    name: bauman-legends
+  front-back:
+    name: front-back
+  internal-back:
+    name: internal-back
