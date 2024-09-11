@@ -1131,7 +1131,7 @@ const docTemplate = `{
             }
         },
         "/task/text": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -1158,9 +1158,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTextTask"
                         }
                     },
                     "400": {
@@ -2101,6 +2101,23 @@ const docTemplate = `{
                 },
                 "points": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTextTask": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
