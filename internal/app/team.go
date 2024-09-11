@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"google.golang.org/grpc"
 	"strconv"
 
@@ -234,7 +235,7 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam, ses request.
 		return err
 	}
 
-	teamId, err := strconv.Atoi(profile.Id)
+	teamId, err := strconv.Atoi(profile.TeamID)
 	if err != nil {
 		return err
 	}
@@ -277,7 +278,7 @@ func (s *TeamService) AddMemberToTeam(req *request.AddMemberToTeam, ses request.
 	if !isCaptain {
 		return errors.Join(consts.ForbiddenError, errors.New("не является капитаном"))
 	}
-
+	fmt.Println(userId, teamId, "@@@@@@@@@@@")
 	err = s.storage.AddMemberToTeam(userId, teamId)
 	if err != nil {
 		return err

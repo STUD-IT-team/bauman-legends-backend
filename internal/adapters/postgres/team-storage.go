@@ -177,7 +177,7 @@ func (s *TeamStorage) AddMemberToTeam(userId int, teamId int) error {
 	if err != nil {
 		log.WithField(
 			"origin.function", "DeleteMemberFromTeam",
-		).Errorf("Ошибка при удалении участника из команды: %s", err.Error())
+		).Errorf("Ошибка при добавлении участника в команду: %s", err.Error())
 		return err
 	}
 	return nil

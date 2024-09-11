@@ -5,6 +5,7 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
+	"strconv"
 )
 
 // MakeRequestRegister
@@ -106,11 +107,11 @@ func MakeGetTeamResponse(dom domain.Team) *response.GetTeam {
 		member = make([]response.Member, 0)
 	}
 	return &response.GetTeam{
-		ID:     dom.ID,
+		ID:     strconv.Itoa(dom.ID),
 		Name:   dom.Name,
 		Points: dom.Points,
 		Captain: response.Member{
-			Id:    dom.Captain.ID,
+			Id:    strconv.Itoa(dom.Captain.ID),
 			Name:  dom.Captain.Name,
 			Grope: dom.Captain.Group,
 			Email: dom.Captain.Email,
@@ -123,7 +124,7 @@ func MakeMembersResponse(dom []domain.Member) *[]response.Member {
 	var members []response.Member
 	for _, member := range dom {
 		mem := response.Member{
-			Id:    member.ID,
+			Id:    strconv.Itoa(member.ID),
 			Name:  member.Name,
 			Grope: member.Group,
 			Email: member.Email,
@@ -152,7 +153,7 @@ func MakeGetTeamByIdResponse(dom domain.Team) *response.GetTeamByID {
 		Name:   dom.Name,
 		Points: dom.Points,
 		Captain: response.Member{
-			Id:    dom.Captain.ID,
+			Id:    strconv.Itoa(dom.Captain.ID),
 			Name:  dom.Captain.Name,
 			Grope: dom.Captain.Group,
 			Email: dom.Captain.Email,
