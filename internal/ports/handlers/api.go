@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
@@ -1142,6 +1143,15 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := h.TextTask.GetTextTask(request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.LockedError) {
+		log.WithField(
+			"origin.function", "GetTextTask",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusLocked)
+		return
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTextTask",

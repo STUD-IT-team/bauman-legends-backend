@@ -118,3 +118,16 @@ func (s *TextTaskStorage) GetLastTextTask(teamId int) (domain.TextTask, error) {
 
 	return task, nil
 }
+
+func (s *TextTaskStorage) CheckDayNewTask(teamId int) (bool, error) {
+	var exist bool
+	err := s.db.QueryRow(context.TODO(), checkDayLastTextTask, teamId).Scan(&exist)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckDayNewTask",
+		).Errorf("Ошибка проверке дня таскм: %s", err.Error())
+		return false, err
+	}
+
+	return exist, nil
+}

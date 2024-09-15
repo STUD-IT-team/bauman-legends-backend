@@ -37,14 +37,6 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 		return response.GetTextTask{}, errors.New("invalid token")
 	}
 
-	// if time.Date(2024, time.September, 16, 10, 0, 0, 0, time.Local).Before(time.Now()) {
-	//	return response.GetTextTask{}, consts.LockedError
-	// }
-
-	// if time.Date(2024, time.September, 22, 59, 59, 0, 0, time.Local).After(time.Now()) {
-	//	return response.GetTextTask{}, consts.LockedError
-	// }
-
 	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: session.Value})
 	if err != nil {
 		return response.GetTextTask{}, err
@@ -60,6 +52,11 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 		return response.GetTextTask{}, err
 	}
 
+	exist, err := s.storage.CheckDayNewTask(teamId)
+	if err != nil {
+		return response.GetTextTask{}, err
+	}
+
 	var task domain.TextTask
 
 	if !status {
@@ -68,6 +65,10 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 			return response.GetTextTask{}, err
 		}
 	} else {
+		if !exist {
+			return response.GetTextTask{}, consts.LockedError
+		}
+
 		task, err = s.storage.GetNewTextTask(teamId)
 		if err != nil {
 			return response.GetTextTask{}, err

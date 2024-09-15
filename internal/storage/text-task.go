@@ -8,6 +8,7 @@ type TextTaskStorage interface {
 	GetStatusLastTextTask(teamId int) (status bool, err error)
 	CreateAnswerOnTextTask(task domain.TextTask) error
 	UpdateAnswerOnTextTask(task domain.TextTask) error
+	CheckDayNewTask(teamId int) (bool, error)
 }
 
 func (s *storage) GetNewTextTask(teamId int) (domain.TextTask, error) {
@@ -28,4 +29,8 @@ func (s *storage) CreateAnswerOnTextTask(task domain.TextTask) error {
 
 func (s *storage) UpdateAnswerOnTextTask(task domain.TextTask) error {
 	return s.TextTask.UpdateAnswerOnTextTask(task)
+}
+
+func (s *storage) CheckDayNewTask(teamId int) (bool, error) {
+	return s.TextTask.CheckDayNewTask(teamId)
 }
