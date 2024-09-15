@@ -1175,8 +1175,8 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "403": {
-                        "description": "not rights",
+                    "423": {
+                        "description": "locked",
                         "schema": {
                             "type": "string"
                         }
@@ -1191,7 +1191,7 @@ const docTemplate = `{
             }
         },
         "/task/text/answer": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
@@ -1216,11 +1216,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "answer ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "send answer",
+                        "name": "request.UpdateAnswerOnTextTaskByID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateAnswerOnTextTaskByID"
+                        }
                     }
                 ],
                 "responses": {
@@ -1974,6 +1976,17 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateAnswerOnTextTaskByID": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints": {
             "type": "object",
             "properties": {
@@ -2088,7 +2101,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "members": {
                     "type": "array",
@@ -2127,11 +2140,11 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "grope": {
+                "group": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"

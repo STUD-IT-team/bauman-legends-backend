@@ -1126,7 +1126,7 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 // @Success      200    object     response.GetTextTask
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
+// @Failure      423  {string}  string    "locked"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /task/text [get]
 func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
@@ -1184,7 +1184,7 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        id path string true "answer ID"
+// @Param  		 request.UpdateAnswerOnTextTaskByID  body  request.UpdateAnswerOnTextTaskByID  true  "send answer"
 // @Success      200  {string}  string    "ok"
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
@@ -1217,6 +1217,15 @@ func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.
 	}
 
 	err = h.TextTask.UpdateAnswerOnTextTaskById(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetTextTask",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnTextTaskById",

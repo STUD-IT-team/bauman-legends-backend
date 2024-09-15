@@ -64,6 +64,13 @@ definitions:
       vk:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateAnswerOnTextTaskByID:
+    properties:
+      answer:
+        type: string
+      id:
+        type: integer
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateSpendPoints:
     properties:
       spend_points:
@@ -138,7 +145,7 @@ definitions:
       captain:
         $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member'
       id:
-        type: integer
+        type: string
       members:
         items:
           $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member'
@@ -163,10 +170,10 @@ definitions:
     properties:
       email:
         type: string
-      grope:
+      group:
         type: string
       id:
-        type: integer
+        type: string
       name:
         type: string
     type: object
@@ -191,7 +198,7 @@ definitions:
       vk:
         type: string
     type: object
-host: localhost:3000
+host: localhost:3010
 info:
   contact: {}
   description: This is backend server for bauman legends 2024.
@@ -938,8 +945,8 @@ paths:
           description: not authorized
           schema:
             type: string
-        "403":
-          description: not rights
+        "423":
+          description: locked
           schema:
             type: string
         "500":
@@ -952,7 +959,7 @@ paths:
       tags:
       - task
   /task/text/answer:
-    put:
+    post:
       consumes:
       - application/json
       parameters:
@@ -961,11 +968,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: answer ID
-        in: path
-        name: id
+      - description: send answer
+        in: body
+        name: request.UpdateAnswerOnTextTaskByID
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_request.UpdateAnswerOnTextTaskByID'
       produces:
       - application/json
       responses:
