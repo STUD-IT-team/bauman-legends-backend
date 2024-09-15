@@ -85,24 +85,24 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 	return *mapper.MakeGetTextTaskResponse(task), nil
 }
 
-func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnTextTaskByID, session request.Session) error {
+func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnTextTaskByID, session request.Session) (string, error) {
 	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: session.Value})
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	if !res.Valid {
-		return errors.New("invalid token")
+		return "false", errors.New("invalid token")
 	}
 
 	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: session.Value})
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	teamId, err := strconv.Atoi(profile.TeamID)
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	answer := *mapper.ParseUpdateAnswerOnTextTask(req)
@@ -110,21 +110,21 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 
 	userId, err := strconv.Atoi(profile.Id)
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	isCaptain, err := s.storage.CheckUserRoleById(userId, consts.CaptainRole)
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	if !isCaptain {
-		return consts.ForbiddenError
+		return "false", consts.ForbiddenError
 	}
 
 	task, err := s.storage.GetLastTextTask(teamId)
 	if err != nil {
-		return err
+		return "false", err
 	}
 
 	if task.Answer == answer.Answer {
@@ -134,10 +134,18 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 		answer.Status = false
 	}
 
-	err = s.storage.UpdateAnswerOnTextTask(answer)
-	if err != nil {
-		return err
+	var status string
+
+	if answer.Status {
+		status = "true"
+	} else {
+		status = "false"
 	}
 
-	return nil
+	err = s.storage.UpdateAnswerOnTextTask(answer)
+	if err != nil {
+		return "false", err
+	}
+
+	return status, nil
 }

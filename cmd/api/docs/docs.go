@@ -1227,9 +1227,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID"
                         }
                     },
                     "400": {
@@ -1246,6 +1246,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "not rights",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "418": {
+                        "description": "I'm a teapot",
                         "schema": {
                             "type": "string"
                         }
@@ -2147,6 +2153,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID": {
+            "type": "object",
+            "properties": {
+                "status": {
                     "type": "string"
                 }
             }

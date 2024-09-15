@@ -177,6 +177,11 @@ definitions:
       name:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID:
+    properties:
+      status:
+        type: string
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UserProfile:
     properties:
       email:
@@ -978,9 +983,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID'
         "400":
           description: bad request
           schema:
@@ -991,6 +996,10 @@ paths:
             type: string
         "403":
           description: not rights
+          schema:
+            type: string
+        "418":
+          description: I'm a teapot
           schema:
             type: string
         "500":
