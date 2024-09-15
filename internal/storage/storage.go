@@ -6,25 +6,25 @@ type Storage interface {
 	TeamStorage
 	ObjectStorage
 	UserStorage
-	MasterClassStorage
+	SECStorage
 }
 
 type storage struct {
-	TextTask    TextTaskStorage
-	MediaTask   MediaTaskStorage
-	Team        TeamStorage
-	Object      ObjectStorage
-	User        UserStorage
-	MasterClass MasterClassStorage
+	TextTask  TextTaskStorage
+	MediaTask MediaTaskStorage
+	Team      TeamStorage
+	Object    ObjectStorage
+	User      UserStorage
+	SEC       SECStorage
 }
 
-func NewStorage(team TeamStorage, textTask TextTaskStorage, mediaTask MediaTaskStorage, object ObjectStorage, user UserStorage, masterClass MasterClassStorage) Storage {
+func NewStorage(team TeamStorage, textTask TextTaskStorage, mediaTask MediaTaskStorage, object ObjectStorage, user UserStorage, sec SECStorage) Storage {
 	return &storage{
-		TextTask:    textTask,
-		Team:        team,
-		MediaTask:   mediaTask,
-		Object:      object,
-		User:        user,
-		MasterClass: masterClass,
+		TextTask:  textTask,
+		Team:      team,
+		MediaTask: mediaTask,
+		Object:    object,
+		User:      user,
+		SEC:       sec,
 	}
 }

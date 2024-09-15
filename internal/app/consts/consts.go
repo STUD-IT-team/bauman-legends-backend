@@ -58,3 +58,5 @@ const (
 	VideoTaskBucket   = "video-task"
 	PhotoAnswerBucket = "photo-answer"
 )
+
+const SecDay = "2024-09-24 "

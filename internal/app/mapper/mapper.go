@@ -1,11 +1,13 @@
 package mapper
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
-	"strconv"
 )
 
 // MakeRequestRegister
@@ -300,5 +302,176 @@ func MakeGetUserById(d domain.Member) *response.GetUserById {
 		PhoneNumber: d.PhoneNumber,
 		Team:        d.TeamName,
 		Role:        d.Role,
+	}
+}
+
+func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
+	secs := make([]response.SECByFilter, 0)
+	var sec response.SECByFilter
+	times := make([]string, 0)
+	capacities := make([]int, 0)
+	free := make([]int, 0)
+	for _, d := range dom {
+		if sec.Id == d.Id {
+			times = append(times, d.StartedAt.Format(time.TimeOnly))
+			capacities = append(capacities, d.Capacity)
+			free = append(free, d.Capacity-d.Busy)
+		} else {
+			sec.Times = times
+			sec.Capacity = capacities
+			sec.FreePlace = free
+			secs = append(secs, sec)
+
+			times = make([]string, 0)
+			capacities = make([]int, 0)
+			free = make([]int, 0)
+
+			times = append(times, d.StartedAt.Format(time.TimeOnly))
+			capacities = append(capacities, d.Capacity)
+			free = append(free, d.Capacity-d.Busy)
+
+			sec = response.SECByFilter{
+				Id:          d.Id,
+				Name:        d.Name,
+				Description: d.Description,
+				FIO:         d.FIO,
+				Phone:       d.Phone,
+				Telegram:    d.Telegram,
+			}
+
+		}
+
+	}
+
+	return &response.GetSecByFilter{
+		SECs: secs[1:],
+	}
+}
+
+func MakeGetSECById(dom []domain.Sec) *response.GetSecById {
+	if len(dom) == 0 {
+		return &response.GetSecById{}
+	}
+	var sec response.GetSecById
+	times := make([]string, 0)
+	capacities := make([]int, 0)
+	free := make([]int, 0)
+
+	for _, d := range dom {
+		times = append(times, d.StartedAt.Format(time.TimeOnly))
+		capacities = append(capacities, d.Capacity)
+		free = append(free, d.Capacity-d.Busy)
+	}
+
+	sec = response.GetSecById{
+		Id:          dom[0].Id,
+		Name:        dom[0].Name,
+		Description: dom[0].Description,
+		FIO:         dom[0].FIO,
+		Phone:       dom[0].Phone,
+		Telegram:    dom[0].Telegram,
+		PhotoUrl:    dom[0].PhotoUrl,
+		Times:       times,
+		Capacity:    capacities,
+		FreePlace:   free,
+	}
+
+	return &sec
+}
+
+func MakeGetSECByTeamId(dom []domain.Sec) *response.GetSecByTeamId {
+	secs := make([]response.SECByTeamId, 0)
+	for _, d := range dom {
+		sec := response.SECByTeamId{
+			Id:          d.Id,
+			Name:        d.Name,
+			Description: d.Description,
+			FIO:         d.FIO,
+			Phone:       d.Phone,
+			Telegram:    d.Telegram,
+			PhotoUrl:    d.PhotoUrl,
+			Times:       d.StartedAt.Format(time.TimeOnly),
+			Capacity:    d.Capacity,
+			FreePlace:   d.Busy,
+		}
+		secs = append(secs, sec)
+	}
+
+	return &response.GetSecByTeamId{
+		Secs: secs,
+	}
+}
+
+func MakeGetSECAdminById(dom []domain.Sec) *response.GetSecAdminById {
+	if len(dom) == 0 {
+		return &response.GetSecAdminById{}
+	}
+	var sec response.GetSecAdminById
+	times := make([]string, 0)
+	capacities := make([]int, 0)
+	busy := make([]int, 0)
+
+	for _, d := range dom {
+		times = append(times, d.StartedAt.Format(time.TimeOnly))
+		capacities = append(capacities, d.Capacity)
+		busy = append(busy, d.Busy)
+	}
+
+	sec = response.GetSecAdminById{
+		Id:          dom[0].Id,
+		Name:        dom[0].Name,
+		Description: dom[0].Description,
+		FIO:         dom[0].FIO,
+		Phone:       dom[0].Phone,
+		Telegram:    dom[0].Telegram,
+		PhotoUrl:    dom[0].PhotoUrl,
+		Times:       times,
+		Capacity:    capacities,
+		BusyPlace:   busy,
+	}
+
+	return &sec
+}
+
+func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
+	secs := make([]response.SECAdminByFilter, 0)
+	var sec response.SECAdminByFilter
+	times := make([]string, 0)
+	capacities := make([]int, 0)
+	busy := make([]int, 0)
+	for _, d := range dom {
+		if sec.Id == d.Id {
+			times = append(times, d.StartedAt.Format(time.TimeOnly))
+			capacities = append(capacities, d.Capacity)
+			busy = append(busy, d.Busy)
+		} else {
+			sec.Times = times
+			sec.Capacity = capacities
+			sec.BusyPlace = busy
+			secs = append(secs, sec)
+
+			times = make([]string, 0)
+			capacities = make([]int, 0)
+			busy = make([]int, 0)
+
+			times = append(times, d.StartedAt.Format(time.TimeOnly))
+			capacities = append(capacities, d.Capacity)
+			busy = append(busy, d.Busy)
+
+			sec = response.SECAdminByFilter{
+				Id:          d.Id,
+				Name:        d.Name,
+				Description: d.Description,
+				FIO:         d.FIO,
+				Phone:       d.Phone,
+				Telegram:    d.Telegram,
+			}
+
+		}
+
+	}
+
+	return &response.GetSecAdminByFilter{
+		SECs: secs[1:],
 	}
 }

@@ -9,8 +9,8 @@ services:
     volumes:
       #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
       - ./db-data:/var/lib/postgresql/data
-    #ports:
-    #  - "5434:5432"
+    ports:
+      - "5434:5432"
     networks:
       - internal-back
 

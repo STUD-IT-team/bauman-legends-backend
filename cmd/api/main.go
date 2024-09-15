@@ -107,24 +107,25 @@ func main() {
 		)
 	}
 
-	//masterStorage, err := postgres.NewMasterClass(pgString)
-	//if err != nil {
-	//	log.WithField(
-	//		"origin.function", "main",
-	//	).Fatalf("Невозможно установить соединение с базой данных: %s",
-	//		err.Error(),
-	//	)
-	//}
+	secStorage, err := postgres.NewSecStorage(pgString)
+	if err != nil {
+		log.WithField(
+			"origin.function", "main",
+		).Fatalf("Невозможно установить соединение с базой данных: %s",
+			err.Error(),
+		)
+	}
 
-	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage, userStorage)
+	storage := storage.NewStorage(teamStorage, textTaskStorage, mediaTaskStorage, objectStorage, userStorage, secStorage)
 
 	teams := app.NewTeamService(conn, storage)
 	textTask := app.NewTextTaskService(conn, storage)
 	mediaTask := app.NewMediaTaskService(conn, storage)
 	users := app.NewUserService(conn, storage)
+	secs := app.NewSECService(conn, storage)
 
 	api := app.NewApi(conn)
-	handler := handlers.NewHTTPHandler(api, teams, textTask, mediaTask, users)
+	handler := handlers.NewHTTPHandler(api, teams, textTask, mediaTask, users, secs)
 
 	r := chi.NewRouter()
 
@@ -161,6 +162,15 @@ func main() {
 	r.Get("/api/admin/task/media/answer", handler.GetAnswerOnMediaByFilter)
 	r.Get("/api/admin/task/media/answer/{id}", handler.GetAnswerOnMediaTaskById)
 	r.Put("/api/admin/task/media/answer/{id}", handler.UpdateStatusAnswerOnMediaTask)
+
+	r.Get("/api/sec", handler.GetAllMasterClass)
+	r.Get("/api/sec/{id}", handler.GetMasterClassById)
+	r.Get("/api/sec/my", handler.GetMasterClassByTeam)
+
+	r.Delete("/api/sec/{id}", handler.DeleteRegisterOnMasterClass)
+
+	r.Get("/api/admin/sec", handler.GetAllAdminMasterClass)
+	r.Get("/api/admin/sec/{id}", handler.GetMasterClassAdminById)
 
 	r.Get("/api/docs/*", httpSwagger.WrapHandler)
 	log.WithField(
