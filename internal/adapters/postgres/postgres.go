@@ -3,9 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"github.com/jackc/pgx/v5"
+	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	log "github.com/sirupsen/logrus"
+	"runtime"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/repository"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
@@ -13,11 +15,11 @@ import (
 )
 
 type UserAuthStorage struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func NewUserAuthStorage(dataSource string) (repository.IUserAuthStorage, error) {
-	db, err := pgx.Connect(context.Background(), dataSource)
+	db, err := pgxpool.New(context.Background(), dataSource)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +106,8 @@ func (r *UserAuthStorage) CheckUser(email string) (exists bool, err error) {
 }
 
 func (r *UserAuthStorage) GetUserProfile(userID string) (*response.UserProfile, error) {
+	fmt.Println(runtime.NumGoroutine(), "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
 	query := `	SELECT 
 					NAME, 
 					"group", 

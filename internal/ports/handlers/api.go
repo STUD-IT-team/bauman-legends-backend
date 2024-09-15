@@ -1190,7 +1190,7 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /task/text/answer [put]
+// @Router       /task/text/answer [post]
 func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
