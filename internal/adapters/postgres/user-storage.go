@@ -19,7 +19,6 @@ func NewUserStorage(dataSource string) (storage.UserStorage, error) {
 		return nil, err
 	}
 	db, err := pgxpool.NewWithConfig(context.Background(), config)
-	defer db.Close()
 	// db.DB.SetMaxOpenConns(1000) // The default is 0 (unlimited)
 	// db.DB.SetMaxIdleConns(10)   // defaultMaxIdleConns = 2
 	// db.DB.SetConnMaxLifetime(0) // 0, connections are reused forever.
