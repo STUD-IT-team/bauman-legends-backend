@@ -88,21 +88,21 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnTextTaskByID, session request.Session) (string, error) {
 	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: session.Value})
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	if !res.Valid {
-		return "false", errors.New("invalid token")
+		return "", errors.New("invalid token")
 	}
 
 	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: session.Value})
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	teamId, err := strconv.Atoi(profile.TeamID)
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	answer := *mapper.ParseUpdateAnswerOnTextTask(req)
@@ -110,21 +110,21 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 
 	userId, err := strconv.Atoi(profile.Id)
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	isCaptain, err := s.storage.CheckUserRoleById(userId, consts.CaptainRole)
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	if !isCaptain {
-		return "false", consts.ForbiddenError
+		return "", consts.ForbiddenError
 	}
 
 	task, err := s.storage.GetLastTextTask(teamId)
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
 	if task.Answer == answer.Answer {
@@ -134,18 +134,14 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 		answer.Status = false
 	}
 
-	var status string
-
-	if answer.Status {
-		status = "true"
-	} else {
-		status = "false"
-	}
-
 	err = s.storage.UpdateAnswerOnTextTask(answer)
 	if err != nil {
-		return "false", err
+		return "", err
 	}
 
-	return status, nil
+	if answer.Status {
+		return "true", nil
+	} else {
+		return "false", consts.TeaPodCode
+	}
 }

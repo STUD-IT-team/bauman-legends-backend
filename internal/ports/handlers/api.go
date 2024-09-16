@@ -1219,13 +1219,13 @@ func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.
 	}
 
 	status, err := h.TextTask.UpdateAnswerOnTextTaskById(req, request.Session{Value: cookie.Value})
-	if status == "false" {
+	if errors.Is(err, consts.TeaPodCode) {
 		log.WithField(
 			"origin.function", "GetTextTask",
 		).Errorf(
 			err.Error(),
 		)
-		http.Error(w, "forbidden", http.StatusTeapot)
+		http.Error(w, "error answer", http.StatusTeapot)
 		return
 	}
 	if errors.Is(err, consts.ForbiddenError) {

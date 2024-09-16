@@ -42,7 +42,7 @@ const (
 	setAnswerOnTextTask    = `UPDATE team_text_answer SET answer = $1, points = $2, status = $3, date = NOW() WHERE text_task_id = $4 AND team_id = $5`
 	getLastTextTask        = `SELECT id, title, description, answer, points FROM text_task WHERE id = (SELECT text_task_id FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1)`
 	getStatusLastTextTask  = `SELECT team_text_answer.status FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1`
-	checkDayLastTextTask   = `SELECT COALESCE( (SELECT DATE_TRUNC('day', (SELECT team_text_answer.date FROM team_text_answer WHERE team_id = 5 ORDER BY team_text_answer.date DESC LIMIT 1)) = CURRENT_DATE), TRUE)`
+	checkDayLastTextTask   = `SELECT COALESCE( (SELECT DATE_TRUNC('day', (SELECT team_text_answer.date FROM team_text_answer WHERE team_id = $1 ORDER BY team_text_answer.date DESC LIMIT 1)) = CURRENT_DATE), TRUE)`
 )
 
 const (
