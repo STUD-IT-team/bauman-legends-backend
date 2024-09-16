@@ -152,7 +152,7 @@ func main() {
 	r.Get("/api/admin/team/{id}", handler.GetTeamById)
 
 	r.Get("/api/task/text", handler.GetTextTask)
-	r.Put("/api/task/text/answer", handler.UpdateAnswerOnTextTaskById)
+	r.Post("/api/task/text/answer", handler.UpdateAnswerOnTextTaskById)
 
 	r.Get("/api/task/media", handler.GetMediaTask)
 	r.Put("/api/task/media/answer/{id}", handler.UpdateAnswerOnMediaTaskById)

@@ -19,6 +19,7 @@ var (
 	LockedError         = errors.New("locked")
 	InternalServerError = errors.New("internal server error")
 	NoRowsAffectedError = errors.New("no rows affected")
+	TeaPodCode          = errors.New(" I'm a teapot")
 )
 
 const (

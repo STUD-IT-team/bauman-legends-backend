@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app"
 	consts "github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	_ "github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
 )
@@ -1127,7 +1129,7 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 // @Success      200    object     response.GetTextTask
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
+// @Failure      423  {string}  string    "locked"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /task/text [get]
 func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
@@ -1144,6 +1146,15 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := h.TextTask.GetTextTask(request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.LockedError) {
+		log.WithField(
+			"origin.function", "GetTextTask",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusLocked)
+		return
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetTextTask",
@@ -1176,13 +1187,14 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        id path string true "answer ID"
-// @Success      200  {string}  string    "ok"
+// @Param  		 request.UpdateAnswerOnTextTaskByID  body  request.UpdateAnswerOnTextTaskByID  true  "send answer"
+// @Success      200  object   response.UpdateAnswerOnTextTaskByID
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
+// @Failure      418  {string}  string    "I'm a teapot"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /task/text/answer [put]
+// @Router       /task/text/answer [post]
 func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1208,11 +1220,44 @@ func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.TextTask.UpdateAnswerOnTextTaskById(req, request.Session{Value: cookie.Value})
+	status, err := h.TextTask.UpdateAnswerOnTextTaskById(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.TeaPodCode) {
+		log.WithField(
+			"origin.function", "GetTextTask",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "error answer", http.StatusTeapot)
+		return
+	}
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetTextTask",
+		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnTextTaskById",
 		).Errorf(
+			err.Error(),
+		)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	res := &response.UpdateAnswerOnTextTaskByID{
+		Status: status,
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "UpdateAnswerOnTextTaskById",
+		).Errorf(
+			"Ошибка возврата статуса ответа: %s",
 			err.Error(),
 		)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

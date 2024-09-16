@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
@@ -12,17 +12,16 @@ import (
 )
 
 type TeamStorage struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func NewTeamStorage(dataSource string) (storage.TeamStorage, error) {
-	config, err := pgx.ParseConfig(dataSource)
+	config, err := pgxpool.ParseConfig(dataSource)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := pgx.ConnectConfig(context.Background(), config)
-
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
+	//db, err := pgx.ConnectConfig(context.Background(), config)
 	// db.DB.SetMaxOpenConns(1000) // The default is 0 (unlimited)
 	// db.DB.SetMaxIdleConns(10)   // defaultMaxIdleConns = 2
 	// db.DB.SetConnMaxLifetime(0) // 0, connections are reused forever.

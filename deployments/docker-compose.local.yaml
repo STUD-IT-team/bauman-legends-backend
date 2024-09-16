@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  database:
+    container_name: "${DB_DN}"
+    image: postgres:15.4-alpine
+    env_file:
+      - ./db.env
+    volumes:
+      #  - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+      - ./db-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - internal-back
+
+  migrator:
+    container_name: bl_migrator
+    depends_on:
+      - database
+    env_file:
+      - migrator.env
+    build:
+      context: ../
+      dockerfile: ./migrations/Dockerfile
+    networks:
+      - internal-back
+
+  minio:
+    container_name: minio_container
+    hostname: minio
+    image: minio/minio:latest
+    command: server --console-address ":9001" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - internal-back
+    env_file:
+      - minio.env
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9000/minio/health/live"
+        ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  api:
+    container_name: "${API_DN}"
+    depends_on:
+      - auth
+    build:
+      context: ../
+      dockerfile: cmd/api/Dockerfile
+    env_file:
+      - .env
+    networks:
+      - front-back
+      - internal-back
+    ports:
+      - "${API_PORT}:${API_PORT}"
+
+  auth:
+    container_name: "${AUTH_DN}"
+    depends_on:
+      - database
+    build:
+      context: ../
+      dockerfile: cmd/auth/Dockerfile
+    env_file:
+      - .env
+      - auth.env
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
+    networks:
+      - internal-back
+
+
+networks:
+  front-back:
+    name: front-back
+  internal-back:
+    name: internal-back

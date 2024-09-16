@@ -13,8 +13,8 @@ const (
 	deleteMemberFromTeamQuery    = `UPDATE "user" SET team_id = NULL WHERE id = $1`
 	addMemberToTeamQuery         = `UPDATE "user" SET team_id = $1 WHERE id = $2`
 	getTeamByIdQuery             = `SELECT id , name,
-    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = 1), 0) +
-       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = 1), 0) + team.delta_points AS total_points
+    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = $1), 0) +
+       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = $1), 0) + team.delta_points AS total_points
     								FROM team
 									WHERE id = (SELECT team_id FROM "user" WHERE id = $1)`
 	getMembersTeamQuery         = `SELECT id, role_id, name, "group", email FROM "user" WHERE team_id =$1;`
@@ -25,13 +25,13 @@ const (
 	setDeltaPointsByTeamIdQuery = `UPDATE team SET delta_points = delta_points + $1 WHERE id = $2`
 	getCountUserInTeamQuery     = `SELECT COUNT(*) FROM "user" WHERE team_id = $1`
 	getTeamByCountUsersQuery    = `SELECT  id , name,
-       							   COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = 1), 0) +
-       							   COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = 1), 0) + delta_points AS total_points 
+       							   COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = $1), 0) +
+       							   COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = $1), 0) + delta_points AS total_points 
 								   FROM team WHERE id IN (SELECT team_id FROM "user" WHERE team_id IS NOT NULL
                                 							GROUP BY team_id HAVING COUNT(*) = $1);`
 	getAllTeamQuery = `SELECT id , name,
-    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = 1), 0) +
-       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = 1), 0) + team.delta_points AS total_points
+    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = $1), 0) +
+       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = $1), 0) + team.delta_points AS total_points
     								FROM team`
 	setVideoFlagInTeam = `UPDATE team SET final_video = TRUE WHERE id = $1`
 )
@@ -42,6 +42,7 @@ const (
 	setAnswerOnTextTask    = `UPDATE team_text_answer SET answer = $1, points = $2, status = $3, date = NOW() WHERE text_task_id = $4 AND team_id = $5`
 	getLastTextTask        = `SELECT id, title, description, answer, points FROM text_task WHERE id = (SELECT text_task_id FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1)`
 	getStatusLastTextTask  = `SELECT team_text_answer.status FROM team_text_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1`
+	checkDayLastTextTask   = `SELECT COALESCE( (SELECT DATE_TRUNC('day', (SELECT team_text_answer.date FROM team_text_answer WHERE team_id = $1 ORDER BY team_text_answer.date DESC LIMIT 1)) = CURRENT_DATE), FALSE)`
 )
 
 const (
