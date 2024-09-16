@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-TRUNCATE TABLE text_task;
+delete  from  text_task;
 
 INSERT INTO text_task (title, description, answer, points)
 VALUES ('**Личность на слуху**',
