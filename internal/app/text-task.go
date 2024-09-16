@@ -52,7 +52,7 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 		return response.GetTextTask{}, err
 	}
 
-	exist, err := s.storage.CheckDayNewTask(teamId)
+	exist, err := s.storage.CheckDayNewTask(teamId) //true если ответили сегодня
 	if err != nil {
 		return response.GetTextTask{}, err
 	}
@@ -65,7 +65,7 @@ func (s *TextTaskService) GetTextTask(session request.Session) (response.GetText
 			return response.GetTextTask{}, err
 		}
 	} else {
-		if !exist {
+		if exist {
 			return response.GetTextTask{}, consts.LockedError
 		}
 
