@@ -5,6 +5,7 @@ import (
 	"errors"
 	"google.golang.org/grpc"
 	"strconv"
+	"strings"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
@@ -127,7 +128,7 @@ func (s *TextTaskService) UpdateAnswerOnTextTaskById(req request.UpdateAnswerOnT
 		return "", err
 	}
 
-	if task.Answer == answer.Answer {
+	if strings.ToLower(task.Answer) == strings.ToLower(answer.Answer) {
 		answer.Status = true
 		answer.Points = task.Points
 	} else {
