@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
@@ -10,17 +10,15 @@ import (
 )
 
 type UserStorage struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func NewUserStorage(dataSource string) (storage.UserStorage, error) {
-	config, err := pgx.ParseConfig(dataSource)
+	config, err := pgxpool.ParseConfig(dataSource)
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := pgx.ConnectConfig(context.Background(), config)
-
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
 	// db.DB.SetMaxOpenConns(1000) // The default is 0 (unlimited)
 	// db.DB.SetMaxIdleConns(10)   // defaultMaxIdleConns = 2
 	// db.DB.SetConnMaxLifetime(0) // 0, connections are reused forever.
