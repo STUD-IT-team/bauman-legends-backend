@@ -392,7 +392,7 @@ func MakeGetSECByTeamId(dom []domain.Sec) *response.GetSecByTeamId {
 			PhotoUrl:    d.PhotoUrl,
 			Times:       d.StartedAt.Format(time.TimeOnly),
 			Capacity:    d.Capacity,
-			FreePlace:   d.Busy,
+			FreePlace:   d.Capacity - d.Busy,
 		}
 		secs = append(secs, sec)
 	}

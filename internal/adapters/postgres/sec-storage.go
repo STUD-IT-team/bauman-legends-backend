@@ -25,7 +25,7 @@ const getSECByFilterQuery = `WITH sum_user AS (
     GROUP BY master_class.id
 )
 
-SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, duration, capacity, COALESCE( SUM_USER.SUM, 0) as busy
+SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, ended_at, capacity, COALESCE( SUM_USER.SUM, 0) as busy
 FROM sec JOIN master_class on sec.id = master_class.sec_id
          JOIN "user" ON "user".id = sec.responsible_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
@@ -50,7 +50,7 @@ func (s *SecStorage) GetSECByFilter() ([]domain.Sec, error) {
 			&sec.Telegram,
 			&sec.Phone,
 			&sec.StartedAt,
-			&sec.DurationMinutes,
+			&sec.EndedAt,
 			&sec.Capacity,
 			&sec.Busy,
 		)
@@ -77,7 +77,7 @@ const getSecByIdQuery = `WITH sum_user AS (
     GROUP BY master_class.id
 )
 
-SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, duration, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
+SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, ended_at, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
 FROM sec JOIN master_class on sec.id = master_class.sec_id
          JOIN "user" ON "user".id = sec.responsible_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
@@ -104,7 +104,7 @@ func (s *SecStorage) GetSecByID(secId int) ([]domain.Sec, error) {
 			&sec.Telegram,
 			&sec.Phone,
 			&sec.StartedAt,
-			&sec.DurationMinutes,
+			&sec.EndedAt,
 			&sec.Capacity,
 			&sec.Busy,
 			&sec.PhotoUrl,
@@ -131,7 +131,7 @@ const getSecByTeamIdQuery = `WITH sum_user AS (
     GROUP BY master_class.id
 )
 
-SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, duration, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
+SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, ended_at, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
 FROM sec JOIN master_class on sec.id = master_class.sec_id
          JOIN "user" ON "user".id = sec.responsible_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
@@ -158,7 +158,7 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 			&sec.Telegram,
 			&sec.Phone,
 			&sec.StartedAt,
-			&sec.DurationMinutes,
+			&sec.EndedAt,
 			&sec.Capacity,
 			&sec.Busy,
 			&sec.PhotoUrl,
@@ -173,8 +173,7 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 }
 
 const createRegisterOnSecQuery = `INSERT INTO team_master_class (team_id, master_class_id) 
-	VALUES ($1, (SELECT master_class.id FROM master_class WHERE sec_id = $2 AND started_at = $3)
-)`
+	VALUES ($1, (SELECT master_class.id FROM master_class WHERE sec_id = $2 AND started_at = $3))`
 
 func (s *SecStorage) CreateRegisterOnSEC(secId int, time string, teamId int) error {
 	_, err := s.db.Exec(context.Background(), createRegisterOnSecQuery, teamId, secId, time)
@@ -185,13 +184,13 @@ func (s *SecStorage) CreateRegisterOnSEC(secId int, time string, teamId int) err
 	return nil
 }
 
-const checkRegisterOnSecQuery = `SELECT EXISTS (SELECT * FROM team_master_class WHERE team_id = $1 AND master_class_id = (
+const checkRegisterOnMasterClassQuery = `SELECT EXISTS (SELECT * FROM team_master_class WHERE team_id = $1 AND master_class_id = (
     SELECT master_class.id FROM master_class WHERE sec_id = $2 AND started_at = $3
 ))`
 
-func (s *SecStorage) CheckRegisterOnSEC(secId int, time string, teamId int) (bool, error) {
+func (s *SecStorage) CheckRegisterOnMasterClass(secId int, time string, teamId int) (bool, error) {
 	var exist bool
-	err := s.db.QueryRow(context.Background(), checkRegisterOnSecQuery, teamId, secId, time).Scan(&exist)
+	err := s.db.QueryRow(context.Background(), checkRegisterOnMasterClassQuery, teamId, secId, time).Scan(&exist)
 	if err != nil {
 		return false, err
 	}
@@ -250,7 +249,7 @@ func (s *SecStorage) GetSECAdmin() ([]domain.Sec, error) {
 			&sec.Telegram,
 			&sec.Phone,
 			&sec.StartedAt,
-			&sec.DurationMinutes,
+			&sec.EndedAt,
 			&sec.Capacity,
 			&sec.Busy,
 		)
@@ -276,7 +275,7 @@ const getSECAdminById = `WITH sum_user AS (
     GROUP BY master_class.id
 )
 
-SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, duration, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
+SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, ended_at, capacity, COALESCE( SUM_USER.SUM, 0), uuid_media as busy
 FROM sec JOIN master_class on sec.id = master_class.sec_id
          JOIN "user" ON "user".id = sec.responsible_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
@@ -303,7 +302,7 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 			&sec.Telegram,
 			&sec.Phone,
 			&sec.StartedAt,
-			&sec.DurationMinutes,
+			&sec.EndedAt,
 			&sec.Capacity,
 			&sec.Busy,
 			&sec.PhotoUrl,
@@ -315,6 +314,66 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 		secs = append(secs, sec)
 	}
 	return secs, nil
+}
+
+const checkRegisterOnSecQuery = `SELECT EXISTS (SELECT * FROM team_master_class 
+    JOIN master_class ON team_master_class.master_class_id = master_class.id
+                        WHERE sec_id = $1 AND team_id = $2)`
+
+func (s *SecStorage) CheckRegisterOnSec(secId, teamId int) (bool, error) {
+	var exist bool
+	err := s.db.QueryRow(context.Background(), checkRegisterOnSecQuery, secId, teamId).Scan(&exist)
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}
+
+const checkIntersectionTimeIntervalQuery = `SELECT EXISTS( SELECT * FROM master_class JOIN team_master_class ON master_class.id = team_master_class.master_class_id
+ WHERE   TSRANGE(started_at, ended_at) && TSRANGE($1, (
+     SELECT ended_at FROM master_class WHERE started_at = $1 AND sec_id = $3
+ )) IS TRUE AND team_id = $2)`
+
+func (s *SecStorage) CheckIntersectionTimeInterval(secId int, time string, teamId int) (bool, error) {
+	var exist bool
+	err := s.db.QueryRow(context.Background(), checkIntersectionTimeIntervalQuery, time, teamId, secId).Scan(&exist)
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}
+
+const checkMasterClassIsExist = `SELECT EXISTS(SELECT * FROM master_class WHERE sec_id = $1 AND started_at = $2)`
+
+func (s *SecStorage) CheckMasterClassIsExist(secId int, time string) (bool, error) {
+	var exist bool
+	err := s.db.QueryRow(context.Background(), checkMasterClassIsExist, secId, time).Scan(&exist)
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
+}
+
+const checkCountUserRegisterOnMasterClassQuery = `SELECT master_class.capacity - (
+SELECT COUNT("user".team_id)
+FROM master_class JOIN team_master_class ON master_class.id = team_master_class.master_class_id
+JOIN "user" ON "user".team_id = team_master_class.team_id
+WHERE sec_id = $1 AND started_at = $2) - (
+    SELECT COUNT("user".team_id) FROM "user" WHERE team_id = $3
+    ) 
+FROM master_class WHERE sec_id = $1 AND started_at = $2`
+
+func (s *SecStorage) CheckMasterClassBusyPlaceById(secId int, time string, teamId int) (int, error) {
+	var count int
+	err := s.db.QueryRow(context.Background(), checkCountUserRegisterOnMasterClassQuery, secId, time, teamId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func NewSecStorage(dataSource string) (storage.SECStorage, error) {

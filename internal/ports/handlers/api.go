@@ -1966,10 +1966,68 @@ func (h *HTTPHandler) GetAllAdminMasterClass(w http.ResponseWriter, r *http.Requ
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
+// @Failure      404  {string}  string    "not found"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /sec/{id} [post]
 func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
 
+	filter := request.NewCreateRegisterOnSecFilter()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Secs.CreateRegisterOnSEC(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ConflictError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "conflict", http.StatusConflict)
+		return
+	}
+
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // DeleteRegisterOnMasterClass
@@ -1992,7 +2050,7 @@ func (h *HTTPHandler) DeleteRegisterOnMasterClass(w http.ResponseWriter, r *http
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
-			"origin.function", "CreateRegisterOnMasterClass",
+			"origin.function", "DeleteRegisterOnMasterClass",
 		).Errorf(
 			"Cookie 'access-token' не найден: %s",
 			err.Error(),
@@ -2004,7 +2062,7 @@ func (h *HTTPHandler) DeleteRegisterOnMasterClass(w http.ResponseWriter, r *http
 	filter := request.NewDeleteRegisterOnSecFilter()
 	if err = filter.Bind(r); err != nil {
 		log.WithField(
-			"origin.function", "CreateRegisterOnMasterClass",
+			"origin.function", "DeleteRegisterOnMasterClass",
 		).Errorf(
 			"ошибка запроса %s", err.Error(),
 		)
@@ -2013,10 +2071,26 @@ func (h *HTTPHandler) DeleteRegisterOnMasterClass(w http.ResponseWriter, r *http
 	}
 
 	err = h.Secs.DeleteRegisterOnSEC(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
 	if err != nil {
 
 		log.WithField(
-			"origin.function", "CreateRegisterOnMasterClass",
+			"origin.function", "DeleteRegisterOnMasterClass",
 		).Errorf("%s", err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

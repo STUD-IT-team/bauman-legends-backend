@@ -10,7 +10,11 @@ type SECStorage interface {
 	DeleteRegisterOnSEC(secId int, time string, teamId int) error
 	GetSECAdmin() ([]domain.Sec, error)
 	GetSECAdminById(secId int) ([]domain.Sec, error)
-	CheckRegisterOnSEC(secId int, time string, teamId int) (bool, error)
+	CheckRegisterOnMasterClass(secId int, time string, teamId int) (bool, error)
+	CheckRegisterOnSec(secId, teamId int) (bool, error)
+	CheckIntersectionTimeInterval(secId int, time string, teamId int) (bool, error)
+	CheckMasterClassIsExist(secId int, time string) (bool, error)
+	CheckMasterClassBusyPlaceById(secId int, time string, teamId int) (int, error)
 }
 
 func (s *storage) GetSECByFilter() ([]domain.Sec, error) {
@@ -34,15 +38,29 @@ func (s *storage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 }
 
 func (s *storage) CreateRegisterOnSEC(secId int, time string, userId int) error {
-	// TODO implement me
-	panic("implement me")
+	return s.SEC.CreateRegisterOnSEC(secId, time, userId)
 }
 
-func (s *storage) DeleteRegisterOnSEC(secId int, time string, userId int) error {
-	// TODO implement me
-	panic("implement me")
+func (s *storage) DeleteRegisterOnSEC(secId int, time string, teamId int) error {
+	return s.SEC.DeleteRegisterOnSEC(secId, time, teamId)
 }
 
-func (s *storage) CheckRegisterOnSEC(secId int, time string, teamId int) (bool, error) {
-	return s.SEC.CheckRegisterOnSEC(secId, time, teamId)
+func (s *storage) CheckRegisterOnMasterClass(secId int, time string, teamId int) (bool, error) {
+	return s.SEC.CheckRegisterOnMasterClass(secId, time, teamId)
+}
+
+func (s *storage) CheckRegisterOnSec(secId, teamId int) (bool, error) {
+	return s.SEC.CheckRegisterOnSec(secId, teamId)
+}
+
+func (s *storage) CheckIntersectionTimeInterval(secId int, time string, teamId int) (bool, error) {
+	return s.SEC.CheckIntersectionTimeInterval(secId, time, teamId)
+}
+
+func (s *storage) CheckMasterClassIsExist(secId int, time string) (bool, error) {
+	return s.SEC.CheckMasterClassIsExist(secId, time)
+}
+
+func (s *storage) CheckMasterClassBusyPlaceById(secId int, time string, teamId int) (int, error) {
+	return s.SEC.CheckMasterClassBusyPlaceById(secId, time, teamId)
 }

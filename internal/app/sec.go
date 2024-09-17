@@ -112,7 +112,7 @@ func (s *SECService) GetSECAdminByFilter(filter request.GetSecAdminByFilter, ses
 	}
 
 	if !isAdmin {
-		return response.GetSecAdminByFilter{}, errors.Join(consts.UnAuthorizedError, errors.New("invalid user"))
+		return response.GetSecAdminByFilter{}, errors.Join(consts.ForbiddenError, errors.New("invalid user"))
 	}
 
 	secs, err := s.storage.GetSECAdmin()
@@ -144,7 +144,7 @@ func (s *SECService) GetSECAdminById(filter request.GetSecAdminByIdFilter, ses r
 	}
 
 	if !isAdmin {
-		return response.GetSecAdminById{}, errors.Join(consts.UnAuthorizedError, errors.New("invalid user"))
+		return response.GetSecAdminById{}, errors.Join(consts.ForbiddenError, errors.New("invalid user"))
 	}
 
 	secs, err := s.storage.GetSECAdminById(filter.Id)
@@ -165,6 +165,20 @@ func (s *SECService) DeleteRegisterOnSEC(filter request.DeleteRegisterOnSecFilte
 		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return err
+	}
+
+	isCaptain, err := s.storage.CheckUserRoleById(userId, consts.CaptainRole)
+	if err != nil {
+		return err
+	}
+
+	if !isCaptain {
+		return errors.Join(consts.UnAuthorizedError, errors.New("invalid user"))
+	}
+
 	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
@@ -175,21 +189,21 @@ func (s *SECService) DeleteRegisterOnSEC(filter request.DeleteRegisterOnSecFilte
 		return err
 	}
 
-	time, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
+	timestartedAt, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
 	if err != nil {
 		return err
 	}
 
-	exist, err := s.storage.CheckRegisterOnSEC(filter.Id, time.String(), teamId)
+	exist, err := s.storage.CheckRegisterOnMasterClass(filter.Id, timestartedAt.Format(time.DateTime), teamId)
 	if err != nil {
 		return err
 	}
 
 	if !exist {
-		return errors.Join(consts.UnAuthorizedError, errors.New("invalid user"))
+		return errors.Join(consts.ForbiddenError, errors.New("invalid user"))
 	}
 
-	err = s.storage.DeleteRegisterOnSEC(filter.Id, filter.Time, teamId)
+	err = s.storage.DeleteRegisterOnSEC(filter.Id, timestartedAt.Format(time.DateTime), teamId)
 	if err != nil {
 		return err
 	}
@@ -207,6 +221,20 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
 	}
 
+	userId, err := strconv.Atoi(res.UserID)
+	if err != nil {
+		return err
+	}
+
+	isCaptain, err := s.storage.CheckUserRoleById(userId, consts.CaptainRole)
+	if err != nil {
+		return err
+	}
+
+	if !isCaptain {
+		return errors.Join(consts.ForbiddenError, errors.New("invalid user"))
+	}
+
 	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
 	if err != nil {
 		return err
@@ -217,9 +245,51 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return err
 	}
 
-	time, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
+	exist, err := s.storage.CheckRegisterOnSec(filter.Id, teamId)
 	if err != nil {
 		return err
 	}
 
+	if exist {
+		return consts.ConflictError
+	}
+
+	timeStartedAt, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
+	if err != nil {
+		return err
+	}
+
+	exist, err = s.storage.CheckIntersectionTimeInterval(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	if err != nil {
+		return err
+	}
+
+	if exist {
+		return consts.ConflictError
+	}
+
+	exist, err = s.storage.CheckMasterClassIsExist(filter.Id, timeStartedAt.Format(time.DateTime))
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return consts.NotFoundError
+	}
+
+	count, err := s.storage.CheckMasterClassBusyPlaceById(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	if err != nil {
+		return err
+	}
+
+	if count < 0 {
+		return consts.ConflictError
+	}
+
+	err = s.storage.CreateRegisterOnSEC(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
