@@ -13,8 +13,8 @@ const (
 	deleteMemberFromTeamQuery    = `UPDATE "user" SET team_id = NULL WHERE id = $1`
 	addMemberToTeamQuery         = `UPDATE "user" SET team_id = $1 WHERE id = $2`
 	getTeamByIdQuery             = `SELECT id , name,
-    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = $1), 0) +
-       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = $1), 0) + team.delta_points AS total_points
+    								COALESCE((SELECT SUM(points) FROM team_text_answer WHERE team_id = (SELECT team_id FROM "user" WHERE id = $1)), 0) +
+       								COALESCE((SELECT SUM(points) FROM team_media_answer WHERE team_id = (SELECT team_id FROM "user" WHERE id = $1)), 0) + team.delta_points AS total_points
     								FROM team
 									WHERE id = (SELECT team_id FROM "user" WHERE id = $1)`
 	getMembersTeamQuery         = `SELECT id, role_id, name, "group", email FROM "user" WHERE team_id =$1;`
