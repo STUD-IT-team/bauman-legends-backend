@@ -196,3 +196,30 @@ func (s *SECService) DeleteRegisterOnSEC(filter request.DeleteRegisterOnSecFilte
 
 	return nil
 }
+
+func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilter, ses request.Session) error {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
+	if err != nil {
+		return err
+	}
+
+	if !res.Valid {
+		return errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
+	}
+
+	profile, err := s.auth.GetProfile(context.Background(), &grpc2.GetProfileRequest{AccessToken: ses.Value})
+	if err != nil {
+		return err
+	}
+
+	teamId, err := strconv.Atoi(profile.TeamID)
+	if err != nil {
+		return err
+	}
+
+	time, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
+	if err != nil {
+		return err
+	}
+
+}

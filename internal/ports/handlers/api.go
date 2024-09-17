@@ -1774,6 +1774,20 @@ func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetMasterClassByTeam
+// @Summary		 GetMasterClassByTeam
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200   object    response.GetSecByTeamId
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec/my [get]
 func (h *HTTPHandler) GetMasterClassByTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1819,6 +1833,20 @@ func (h *HTTPHandler) GetMasterClassByTeam(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetMasterClassAdminById
+// @Summary		 GetMasterClassAdminById
+// @Description  возвращает все мастеркласы, которые еще не начались
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200  object     response.GetSecAdminById
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/sec [get]
 func (h *HTTPHandler) GetMasterClassAdminById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1864,6 +1892,21 @@ func (h *HTTPHandler) GetMasterClassAdminById(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetAllAdminMasterClass
+// @Summary		 GetAllAdminMasterClass
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "master class ID"
+// @Success      200   object    response.GetSecById
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/sec/{id} [get]
 func (h *HTTPHandler) GetAllAdminMasterClass(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1918,12 +1961,13 @@ func (h *HTTPHandler) GetAllAdminMasterClass(w http.ResponseWriter, r *http.Requ
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
 // @Param        id path string true "master class ID"
+// @Param        time        query     string true "14:00:00"
 // @Success      200  {string}  string    "ok"
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /sec/{id} [put]
+// @Router       /sec/{id} [post]
 func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -1937,6 +1981,7 @@ func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
 // @Param        id path string true "master class ID"
+// @Param        time        query     string true "14:00:00"
 // @Success      200  {string}  string    "ok"
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
