@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
@@ -37,6 +38,9 @@ func (s *SecStorage) GetSECByFilter() ([]domain.Sec, error) {
 	var secs []domain.Sec
 	rows, err := s.db.Query(context.Background(), getSECByFilterQuery)
 	if err != nil {
+		log.WithField(
+			"origin.function", "GetSECByFilter",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return secs, err
 	}
 	defer rows.Close()
@@ -57,6 +61,9 @@ func (s *SecStorage) GetSECByFilter() ([]domain.Sec, error) {
 			&sec.EndedAt,
 		)
 		if err != nil {
+			log.WithField(
+				"origin.function", "GetSECByFilter",
+			).Errorf("ошибка получения данных: %s", err.Error())
 			return secs, err
 		}
 
@@ -92,6 +99,9 @@ func (s *SecStorage) GetSecByID(secId int) ([]domain.Sec, error) {
 	var secs []domain.Sec
 	rows, err := s.db.Query(context.Background(), getSecByIdQuery, secId)
 	if err != nil {
+		log.WithField(
+			"origin.function", "GetSecByID",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return nil, err
 	}
 
@@ -114,6 +124,9 @@ func (s *SecStorage) GetSecByID(secId int) ([]domain.Sec, error) {
 			&sec.EndedAt,
 		)
 		if err != nil {
+			log.WithField(
+				"origin.function", "GetSecByID",
+			).Errorf("ошибка получения данных: %s", err.Error())
 			return secs, err
 		}
 
@@ -148,6 +161,9 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 	var secs []domain.Sec
 	rows, err := s.db.Query(context.Background(), getSecByTeamIdQuery, teamId)
 	if err != nil {
+		log.WithField(
+			"origin.function", "GetSecByTeamId",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return nil, err
 	}
 
@@ -170,6 +186,9 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 			&sec.EndedAt,
 		)
 		if err != nil {
+			log.WithField(
+				"origin.function", "GetSecByTeamId",
+			).Errorf("ошибка получения данных: %s", err.Error())
 			return secs, err
 		}
 
@@ -178,12 +197,14 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 	return secs, nil
 }
 
-const createRegisterOnSecQuery = `INSERT INTO team_master_class (team_id, master_class_id) 
-	VALUES ($1, $2)`
+const createRegisterOnSecQuery = `INSERT INTO team_master_class (team_id, master_class_id) VALUES ($1, $2)`
 
 func (s *SecStorage) CreateRegisterOnSEC(masterClassId, teamId int) error {
 	_, err := s.db.Exec(context.Background(), createRegisterOnSecQuery, teamId, masterClassId)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CreateRegisterOnSEC",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return err
 	}
 
@@ -196,6 +217,9 @@ func (s *SecStorage) CheckRegisterOnMasterClass(masterClassId, teamId int) (bool
 	var exist bool
 	err := s.db.QueryRow(context.Background(), checkRegisterOnMasterClassQuery, teamId, masterClassId).Scan(&exist)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckRegisterOnMasterClass",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return false, err
 	}
 
@@ -207,6 +231,9 @@ const deleteRegisterOnSECQuery = `DELETE FROM team_master_class WHERE team_id = 
 func (s *SecStorage) DeleteRegisterOnSEC(masterClassId, teamId int) error {
 	_, err := s.db.Exec(context.Background(), deleteRegisterOnSECQuery, teamId, masterClassId)
 	if err != nil {
+		log.WithField(
+			"origin.function", "DeleteRegisterOnSEC",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return err
 	}
 
@@ -237,6 +264,9 @@ func (s *SecStorage) GetSECAdmin() ([]domain.Sec, error) {
 	var secs []domain.Sec
 	rows, err := s.db.Query(context.Background(), getSECAdminByFilterQuery)
 	if err != nil {
+		log.WithField(
+			"origin.function", "GetSECAdmin",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return nil, err
 	}
 
@@ -257,6 +287,9 @@ func (s *SecStorage) GetSECAdmin() ([]domain.Sec, error) {
 			&sec.EndedAt,
 		)
 		if err != nil {
+			log.WithField(
+				"origin.function", "GetSECAdmin",
+			).Errorf("ошибка получения данных: %s", err.Error())
 			return secs, err
 		}
 
@@ -291,6 +324,9 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 	var secs []domain.Sec
 	rows, err := s.db.Query(context.Background(), getSECAdminById, secId)
 	if err != nil {
+		log.WithField(
+			"origin.function", "GetSECAdminById",
+		).Errorf("ошибка запроса: %s", err.Error())
 		return nil, err
 	}
 
@@ -312,6 +348,9 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 			&sec.EndedAt,
 		)
 		if err != nil {
+			log.WithField(
+				"origin.function", "GetSECAdminById",
+			).Errorf("ошибка получения данных: %s", err.Error())
 			return secs, err
 		}
 
@@ -328,6 +367,9 @@ func (s *SecStorage) CheckRegisterOnSec(secId, teamId int) (bool, error) {
 	var exist bool
 	err := s.db.QueryRow(context.Background(), checkRegisterOnSecQuery, secId, teamId).Scan(&exist)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckRegisterOnSec",
+		).Errorf("ошибка получения данных: %s", err.Error())
 		return false, err
 	}
 
@@ -345,6 +387,9 @@ func (s *SecStorage) CheckIntersectionTimeInterval(masterClassId, teamId int) (b
 	var exist bool
 	err := s.db.QueryRow(context.Background(), checkIntersectionTimeIntervalQuery, masterClassId, teamId).Scan(&exist)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckIntersectionTimeInterval",
+		).Errorf("ошибка получения данных: %s", err.Error())
 		return false, err
 	}
 
@@ -357,6 +402,9 @@ func (s *SecStorage) CheckMasterClassIsExist(masterClassId int) (bool, error) {
 	var exist bool
 	err := s.db.QueryRow(context.Background(), checkMasterClassIsExist, masterClassId).Scan(&exist)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckMasterClassIsExist",
+		).Errorf("ошибка получения данных: %s", err.Error())
 		return false, err
 	}
 
@@ -376,6 +424,9 @@ func (s *SecStorage) CheckMasterClassBusyPlaceById(masterClassId, teamId int) (i
 	var count int
 	err := s.db.QueryRow(context.Background(), checkCountUserRegisterOnMasterClassQuery, masterClassId, teamId).Scan(&count)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckMasterClassBusyPlaceById",
+		).Errorf("ошибка получения данных: %s", err.Error())
 		return 0, err
 	}
 
@@ -388,6 +439,9 @@ func (s *SecStorage) CheckMasterClassTime(masterClass int) (bool, error) {
 	var exist bool
 	err := s.db.QueryRow(context.Background(), checkMasterClassTimeQuery, masterClass).Scan(&exist)
 	if err != nil {
+		log.WithField(
+			"origin.function", "CheckMasterClassTime",
+		).Errorf("ошибка получения данных: %s", err.Error())
 		return false, err
 	}
 
