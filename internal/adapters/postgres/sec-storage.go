@@ -2,14 +2,14 @@ package postgres
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
 )
 
 type SecStorage struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 const getSECByFilterQuery = `WITH sum_user AS (
@@ -395,12 +395,12 @@ func (s *SecStorage) CheckMasterClassTime(masterClass int) (bool, error) {
 }
 
 func NewSecStorage(dataSource string) (storage.SECStorage, error) {
-	config, err := pgx.ParseConfig(dataSource)
+	config, err := pgxpool.ParseConfig(dataSource)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := pgx.ConnectConfig(context.Background(), config)
+	db, err := pgxpool.NewWithConfig(context.Background(), config)
 	return &SecStorage{
 		db: db,
 	}, nil
