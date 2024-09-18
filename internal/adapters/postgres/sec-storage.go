@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
 	log "github.com/sirupsen/logrus"
+	"os"
 
+	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/storage"
 )
@@ -123,6 +125,7 @@ func (s *SecStorage) GetSecByID(secId int) ([]domain.Sec, error) {
 			&sec.MasterClassId,
 			&sec.EndedAt,
 		)
+		sec.PhotoUrl = os.Getenv("MINIO_URL") + consts.SECBucket + "/" + sec.PhotoUrl
 		if err != nil {
 			log.WithField(
 				"origin.function", "GetSecByID",
@@ -185,6 +188,7 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 			&sec.MasterClassId,
 			&sec.EndedAt,
 		)
+		sec.PhotoUrl = os.Getenv("MINIO_URL") + consts.SECBucket + "/" + sec.PhotoUrl
 		if err != nil {
 			log.WithField(
 				"origin.function", "GetSecByTeamId",
@@ -347,6 +351,7 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 			&sec.MasterClassId,
 			&sec.EndedAt,
 		)
+		sec.PhotoUrl = os.Getenv("MINIO_URL") + consts.SECBucket + "/" + sec.PhotoUrl
 		if err != nil {
 			log.WithField(
 				"origin.function", "GetSECAdminById",
