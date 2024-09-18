@@ -167,8 +167,8 @@ func main() {
 	r.Get("/api/sec/{id}", handler.GetMasterClassById)
 	r.Get("/api/sec/my", handler.GetMasterClassByTeam)
 
-	r.Delete("/api/sec/{id}", handler.DeleteRegisterOnMasterClass)
-	r.Post("/api/sec/{id}", handler.CreateRegisterOnMasterClass)
+	r.Delete("/api/sec/master_class/{id}", handler.DeleteRegisterOnMasterClass)
+	r.Post("/api/sec/master_class/{id}", handler.CreateRegisterOnMasterClass)
 
 	r.Get("/api/admin/sec", handler.GetAllAdminMasterClass)
 	r.Get("/api/admin/sec/{id}", handler.GetMasterClassAdminById)

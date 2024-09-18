@@ -22,7 +22,6 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "возвращает все мастеркласы, которые еще не начались",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,7 +31,7 @@ const docTemplate = `{
                 "tags": [
                     "sec"
                 ],
-                "summary": "GetMasterClassAdminById",
+                "summary": "GetAllAdminMasterClass",
                 "parameters": [
                     {
                         "type": "string",
@@ -46,7 +45,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecAdminById"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById"
                         }
                     },
                     "400": {
@@ -83,6 +82,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
+                "description": "возвращает все мастеркласы, которые еще не начались",
                 "consumes": [
                     "application/json"
                 ],
@@ -92,7 +92,7 @@ const docTemplate = `{
                 "tags": [
                     "sec"
                 ],
-                "summary": "GetAllAdminMasterClass",
+                "summary": "GetMasterClassAdminById",
                 "parameters": [
                     {
                         "type": "string",
@@ -113,7 +113,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById"
+                            "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecAdminById"
                         }
                     },
                     "400": {
@@ -631,7 +631,7 @@ const docTemplate = `{
                 "tags": [
                     "task"
                 ],
-                "summary": "Get Answer On Media Task By Id",
+                "summary": "Get Answer On Media Task By MasterClassId",
                 "parameters": [
                     {
                         "type": "string",
@@ -823,7 +823,7 @@ const docTemplate = `{
                 "tags": [
                     "task"
                 ],
-                "summary": "Get Media Task By Team By Id",
+                "summary": "Get Media Task By Team By MasterClassId",
                 "parameters": [
                     {
                         "type": "string",
@@ -920,8 +920,158 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/sec/master_class/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sec"
+                ],
+                "summary": "CreateRegisterOnMasterClass",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "master class ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "not authorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "403": {
                         "description": "not rights",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "423": {
+                        "description": "locked",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sec"
+                ],
+                "summary": "DeleteRegisterOnMasterClass",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "master class ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "not authorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "not rights",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "not found",
                         "schema": {
                             "type": "string"
                         }
@@ -980,12 +1130,6 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "403": {
-                        "description": "not rights",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     "500": {
                         "description": "internal server error",
                         "schema": {
@@ -1022,7 +1166,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "master class ID",
+                        "description": "sec ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1043,156 +1187,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "not authorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "not rights",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "sec"
-                ],
-                "summary": "CreateRegisterOnMasterClass",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "master class ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "14:00:00",
-                        "name": "time",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "not authorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "not rights",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "sec"
-                ],
-                "summary": "DeleteRegisterOnMasterClass",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Authorization",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "master class ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "14:00:00",
-                        "name": "time",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "not authorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "not rights",
                         "schema": {
                             "type": "string"
                         }
@@ -1282,7 +1276,7 @@ const docTemplate = `{
                 "tags": [
                     "task"
                 ],
-                "summary": "Update Answer On Media Task By Id",
+                "summary": "Update Answer On Media Task By MasterClassId",
                 "parameters": [
                     {
                         "type": "string",
@@ -2306,18 +2300,6 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecAdminById": {
             "type": "object",
             "properties": {
-                "busy_place": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "capacity": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "description": {
                     "type": "string"
                 },
@@ -2326,6 +2308,12 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "master_classes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassAdminById"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -2338,12 +2326,6 @@ const docTemplate = `{
                 },
                 "telegram": {
                     "type": "string"
-                },
-                "times": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2361,26 +2343,20 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById": {
             "type": "object",
             "properties": {
-                "capacity": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "description": {
                     "type": "string"
                 },
                 "fio": {
                     "type": "string"
                 },
-                "free_place": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "id": {
                     "type": "integer"
+                },
+                "master_classes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassById"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -2393,12 +2369,6 @@ const docTemplate = `{
                 },
                 "telegram": {
                     "type": "string"
-                },
-                "times": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2453,6 +2423,66 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassAdminById": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "ended_at": {
+                    "type": "string"
+                },
+                "free_place": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassByFilter": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "ended_at": {
+                    "type": "string"
+                },
+                "free_place": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassById": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "ended_at": {
+                    "type": "string"
+                },
+                "free_place": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member": {
             "type": "object",
             "properties": {
@@ -2473,26 +2503,20 @@ const docTemplate = `{
         "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.SECByFilter": {
             "type": "object",
             "properties": {
-                "capacity": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "description": {
                     "type": "string"
                 },
                 "fio": {
                     "type": "string"
                 },
-                "free_place": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
                 "id": {
                     "type": "integer"
+                },
+                "master_classes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassByFilter"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -2502,12 +2526,6 @@ const docTemplate = `{
                 },
                 "telegram": {
                     "type": "string"
-                },
-                "times": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2520,6 +2538,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "ended_at": {
+                    "type": "string"
+                },
                 "fio": {
                     "type": "string"
                 },
@@ -2527,6 +2548,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "master_class_id": {
                     "type": "integer"
                 },
                 "name": {
@@ -2538,10 +2562,10 @@ const docTemplate = `{
                 "photo_url": {
                     "type": "string"
                 },
-                "telegram": {
+                "started_at": {
                     "type": "string"
                 },
-                "times": {
+                "telegram": {
                     "type": "string"
                 }
             }

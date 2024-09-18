@@ -6,15 +6,16 @@ type SECStorage interface {
 	GetSECByFilter() ([]domain.Sec, error)
 	GetSecByID(id int) ([]domain.Sec, error)
 	GetSecByTeamId(teamId int) ([]domain.Sec, error)
-	CreateRegisterOnSEC(secId int, time string, teamId int) error
-	DeleteRegisterOnSEC(secId int, time string, teamId int) error
+	CreateRegisterOnSEC(masterClassId, teamId int) error
+	DeleteRegisterOnSEC(masterClassId, teamId int) error
 	GetSECAdmin() ([]domain.Sec, error)
 	GetSECAdminById(secId int) ([]domain.Sec, error)
-	CheckRegisterOnMasterClass(secId int, time string, teamId int) (bool, error)
+	CheckRegisterOnMasterClass(masterClassId, teamId int) (bool, error)
 	CheckRegisterOnSec(secId, teamId int) (bool, error)
-	CheckIntersectionTimeInterval(secId int, time string, teamId int) (bool, error)
-	CheckMasterClassIsExist(secId int, time string) (bool, error)
-	CheckMasterClassBusyPlaceById(secId int, time string, teamId int) (int, error)
+	CheckIntersectionTimeInterval(masterClassId, teamId int) (bool, error)
+	CheckMasterClassIsExist(masterClassId int) (bool, error)
+	CheckMasterClassBusyPlaceById(masterClassId, teamId int) (int, error)
+	CheckMasterClassTime(masterClass int) (bool, error)
 }
 
 func (s *storage) GetSECByFilter() ([]domain.Sec, error) {
@@ -37,30 +38,34 @@ func (s *storage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 	return s.SEC.GetSECAdminById(secId)
 }
 
-func (s *storage) CreateRegisterOnSEC(secId int, time string, userId int) error {
-	return s.SEC.CreateRegisterOnSEC(secId, time, userId)
+func (s *storage) CreateRegisterOnSEC(masterClassId, userId int) error {
+	return s.SEC.CreateRegisterOnSEC(masterClassId, userId)
 }
 
-func (s *storage) DeleteRegisterOnSEC(secId int, time string, teamId int) error {
-	return s.SEC.DeleteRegisterOnSEC(secId, time, teamId)
+func (s *storage) DeleteRegisterOnSEC(masterClassId, teamId int) error {
+	return s.SEC.DeleteRegisterOnSEC(masterClassId, teamId)
 }
 
-func (s *storage) CheckRegisterOnMasterClass(secId int, time string, teamId int) (bool, error) {
-	return s.SEC.CheckRegisterOnMasterClass(secId, time, teamId)
+func (s *storage) CheckRegisterOnMasterClass(masterClassId, teamId int) (bool, error) {
+	return s.SEC.CheckRegisterOnMasterClass(masterClassId, teamId)
 }
 
 func (s *storage) CheckRegisterOnSec(secId, teamId int) (bool, error) {
 	return s.SEC.CheckRegisterOnSec(secId, teamId)
 }
 
-func (s *storage) CheckIntersectionTimeInterval(secId int, time string, teamId int) (bool, error) {
-	return s.SEC.CheckIntersectionTimeInterval(secId, time, teamId)
+func (s *storage) CheckIntersectionTimeInterval(masterClassId, teamId int) (bool, error) {
+	return s.SEC.CheckIntersectionTimeInterval(masterClassId, teamId)
 }
 
-func (s *storage) CheckMasterClassIsExist(secId int, time string) (bool, error) {
-	return s.SEC.CheckMasterClassIsExist(secId, time)
+func (s *storage) CheckMasterClassIsExist(masterClassId int) (bool, error) {
+	return s.SEC.CheckMasterClassIsExist(masterClassId)
 }
 
-func (s *storage) CheckMasterClassBusyPlaceById(secId int, time string, teamId int) (int, error) {
-	return s.SEC.CheckMasterClassBusyPlaceById(secId, time, teamId)
+func (s *storage) CheckMasterClassBusyPlaceById(masterClassId, teamId int) (int, error) {
+	return s.SEC.CheckMasterClassBusyPlaceById(masterClassId, teamId)
+}
+
+func (s *storage) CheckMasterClassTime(masterClass int) (bool, error) {
+	return s.SEC.CheckMasterClassTime(masterClass)
 }

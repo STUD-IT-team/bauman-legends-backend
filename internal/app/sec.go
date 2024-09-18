@@ -5,7 +5,6 @@ import (
 	"errors"
 	"google.golang.org/grpc"
 	"strconv"
-	"time"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/mapper"
@@ -189,12 +188,7 @@ func (s *SECService) DeleteRegisterOnSEC(filter request.DeleteRegisterOnSecFilte
 		return err
 	}
 
-	timestartedAt, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
-	if err != nil {
-		return err
-	}
-
-	exist, err := s.storage.CheckRegisterOnMasterClass(filter.Id, timestartedAt.Format(time.DateTime), teamId)
+	exist, err := s.storage.CheckRegisterOnMasterClass(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}
@@ -203,7 +197,7 @@ func (s *SECService) DeleteRegisterOnSEC(filter request.DeleteRegisterOnSecFilte
 		return errors.Join(consts.ForbiddenError, errors.New("invalid user"))
 	}
 
-	err = s.storage.DeleteRegisterOnSEC(filter.Id, timestartedAt.Format(time.DateTime), teamId)
+	err = s.storage.DeleteRegisterOnSEC(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}
@@ -245,7 +239,7 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return err
 	}
 
-	exist, err := s.storage.CheckRegisterOnSec(filter.Id, teamId)
+	exist, err := s.storage.CheckRegisterOnSec(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}
@@ -254,12 +248,7 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return consts.ConflictError
 	}
 
-	timeStartedAt, err := time.Parse(time.DateTime, consts.SecDay+filter.Time)
-	if err != nil {
-		return err
-	}
-
-	exist, err = s.storage.CheckIntersectionTimeInterval(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	exist, err = s.storage.CheckIntersectionTimeInterval(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}
@@ -268,7 +257,7 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return consts.ConflictError
 	}
 
-	exist, err = s.storage.CheckMasterClassIsExist(filter.Id, timeStartedAt.Format(time.DateTime))
+	exist, err = s.storage.CheckMasterClassIsExist(filter.MasterClassId)
 	if err != nil {
 		return err
 	}
@@ -277,7 +266,16 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return consts.NotFoundError
 	}
 
-	count, err := s.storage.CheckMasterClassBusyPlaceById(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	exist, err = s.storage.CheckMasterClassTime(filter.MasterClassId)
+	if err != nil {
+		return err
+	}
+
+	if exist {
+		return consts.LockedError
+	}
+
+	count, err := s.storage.CheckMasterClassBusyPlaceById(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}
@@ -286,7 +284,7 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 		return consts.ConflictError
 	}
 
-	err = s.storage.CreateRegisterOnSEC(filter.Id, timeStartedAt.Format(time.DateTime), teamId)
+	err = s.storage.CreateRegisterOnSEC(filter.MasterClassId, teamId)
 	if err != nil {
 		return err
 	}

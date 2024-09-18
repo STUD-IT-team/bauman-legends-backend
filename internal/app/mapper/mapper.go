@@ -308,27 +308,31 @@ func MakeGetUserById(d domain.Member) *response.GetUserById {
 func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
 	secs := make([]response.SECByFilter, 0)
 	var sec response.SECByFilter
-	times := make([]string, 0)
-	capacities := make([]int, 0)
-	free := make([]int, 0)
+	masterClasses := make([]response.MasterClassByFilter, 0)
 	for _, d := range dom {
 		if sec.Id == d.Id {
-			times = append(times, d.StartedAt.Format(time.TimeOnly))
-			capacities = append(capacities, d.Capacity)
-			free = append(free, d.Capacity-d.Busy)
+			masterClasses = append(masterClasses,
+				response.MasterClassByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
 		} else {
-			sec.Times = times
-			sec.Capacity = capacities
-			sec.FreePlace = free
+			sec.MasterClasses = masterClasses
 			secs = append(secs, sec)
 
-			times = make([]string, 0)
-			capacities = make([]int, 0)
-			free = make([]int, 0)
+			masterClasses = make([]response.MasterClassByFilter, 0)
 
-			times = append(times, d.StartedAt.Format(time.TimeOnly))
-			capacities = append(capacities, d.Capacity)
-			free = append(free, d.Capacity-d.Busy)
+			masterClasses = append(masterClasses,
+				response.MasterClassByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
 
 			sec = response.SECByFilter{
 				Id:          d.Id,
@@ -353,27 +357,28 @@ func MakeGetSECById(dom []domain.Sec) *response.GetSecById {
 		return &response.GetSecById{}
 	}
 	var sec response.GetSecById
-	times := make([]string, 0)
-	capacities := make([]int, 0)
-	free := make([]int, 0)
+	masterClasses := make([]response.MasterClassById, 0)
 
 	for _, d := range dom {
-		times = append(times, d.StartedAt.Format(time.TimeOnly))
-		capacities = append(capacities, d.Capacity)
-		free = append(free, d.Capacity-d.Busy)
+		masterClasses = append(masterClasses,
+			response.MasterClassById{
+				Id:        d.MasterClassId,
+				StartedAt: d.StartedAt.Format(time.TimeOnly),
+				EndedAt:   d.EndedAt.Format(time.TimeOnly),
+				Capacity:  d.Capacity,
+				FreePlace: d.Capacity - d.Busy,
+			})
 	}
 
 	sec = response.GetSecById{
-		Id:          dom[0].Id,
-		Name:        dom[0].Name,
-		Description: dom[0].Description,
-		FIO:         dom[0].FIO,
-		Phone:       dom[0].Phone,
-		Telegram:    dom[0].Telegram,
-		PhotoUrl:    dom[0].PhotoUrl,
-		Times:       times,
-		Capacity:    capacities,
-		FreePlace:   free,
+		Id:            dom[0].Id,
+		Name:          dom[0].Name,
+		Description:   dom[0].Description,
+		FIO:           dom[0].FIO,
+		Phone:         dom[0].Phone,
+		Telegram:      dom[0].Telegram,
+		PhotoUrl:      dom[0].PhotoUrl,
+		MasterClasses: masterClasses,
 	}
 
 	return &sec
@@ -383,16 +388,18 @@ func MakeGetSECByTeamId(dom []domain.Sec) *response.GetSecByTeamId {
 	secs := make([]response.SECByTeamId, 0)
 	for _, d := range dom {
 		sec := response.SECByTeamId{
-			Id:          d.Id,
-			Name:        d.Name,
-			Description: d.Description,
-			FIO:         d.FIO,
-			Phone:       d.Phone,
-			Telegram:    d.Telegram,
-			PhotoUrl:    d.PhotoUrl,
-			Times:       d.StartedAt.Format(time.TimeOnly),
-			Capacity:    d.Capacity,
-			FreePlace:   d.Capacity - d.Busy,
+			Id:            d.Id,
+			Name:          d.Name,
+			Description:   d.Description,
+			FIO:           d.FIO,
+			Phone:         d.Phone,
+			Telegram:      d.Telegram,
+			PhotoUrl:      d.PhotoUrl,
+			MasterClassId: d.MasterClassId,
+			StartedAt:     d.StartedAt.Format(time.TimeOnly),
+			EndedAt:       d.EndedAt.Format(time.TimeOnly),
+			Capacity:      d.Capacity,
+			FreePlace:     d.Capacity - d.Busy,
 		}
 		secs = append(secs, sec)
 	}
@@ -407,27 +414,28 @@ func MakeGetSECAdminById(dom []domain.Sec) *response.GetSecAdminById {
 		return &response.GetSecAdminById{}
 	}
 	var sec response.GetSecAdminById
-	times := make([]string, 0)
-	capacities := make([]int, 0)
-	busy := make([]int, 0)
+	masterClasses := make([]response.MasterClassAdminById, 0)
 
 	for _, d := range dom {
-		times = append(times, d.StartedAt.Format(time.TimeOnly))
-		capacities = append(capacities, d.Capacity)
-		busy = append(busy, d.Busy)
+		masterClasses = append(masterClasses,
+			response.MasterClassAdminById{
+				Id:        d.MasterClassId,
+				StartedAt: d.StartedAt.Format(time.TimeOnly),
+				EndedAt:   d.EndedAt.Format(time.TimeOnly),
+				Capacity:  d.Capacity,
+				FreePlace: d.Capacity - d.Busy,
+			})
 	}
 
 	sec = response.GetSecAdminById{
-		Id:          dom[0].Id,
-		Name:        dom[0].Name,
-		Description: dom[0].Description,
-		FIO:         dom[0].FIO,
-		Phone:       dom[0].Phone,
-		Telegram:    dom[0].Telegram,
-		PhotoUrl:    dom[0].PhotoUrl,
-		Times:       times,
-		Capacity:    capacities,
-		BusyPlace:   busy,
+		Id:            dom[0].Id,
+		Name:          dom[0].Name,
+		Description:   dom[0].Description,
+		FIO:           dom[0].FIO,
+		Phone:         dom[0].Phone,
+		Telegram:      dom[0].Telegram,
+		PhotoUrl:      dom[0].PhotoUrl,
+		MasterClasses: masterClasses,
 	}
 
 	return &sec
@@ -436,27 +444,31 @@ func MakeGetSECAdminById(dom []domain.Sec) *response.GetSecAdminById {
 func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
 	secs := make([]response.SECAdminByFilter, 0)
 	var sec response.SECAdminByFilter
-	times := make([]string, 0)
-	capacities := make([]int, 0)
-	busy := make([]int, 0)
+	masterClasses := make([]response.MasterClassAdminByFilter, 0)
 	for _, d := range dom {
 		if sec.Id == d.Id {
-			times = append(times, d.StartedAt.Format(time.TimeOnly))
-			capacities = append(capacities, d.Capacity)
-			busy = append(busy, d.Busy)
+			masterClasses = append(masterClasses,
+				response.MasterClassAdminByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
 		} else {
-			sec.Times = times
-			sec.Capacity = capacities
-			sec.BusyPlace = busy
+			sec.MasterClasses = masterClasses
 			secs = append(secs, sec)
 
-			times = make([]string, 0)
-			capacities = make([]int, 0)
-			busy = make([]int, 0)
+			masterClasses = make([]response.MasterClassAdminByFilter, 0)
 
-			times = append(times, d.StartedAt.Format(time.TimeOnly))
-			capacities = append(capacities, d.Capacity)
-			busy = append(busy, d.Busy)
+			masterClasses = append(masterClasses,
+				response.MasterClassAdminByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
 
 			sec = response.SECAdminByFilter{
 				Id:          d.Id,
