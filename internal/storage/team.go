@@ -6,6 +6,7 @@ type TeamStorage interface {
 	CheckTeam(teamName string) (exists bool, err error)
 	CreateTeam(teamName string, userId int) (teamId int, err error)
 	CheckUserHasTeamById(userId int) (exists bool, err error)
+	CheckUserExistInTeam(userId, teamId int) (exist bool, err error)
 	CheckUserHasTeamByEmail(email string) (exists bool, err error)
 	CheckUserIsExistByEmail(email string) (id int, err error)
 	SetTeamID(userId int, teamID int) error
@@ -97,4 +98,8 @@ func (s *storage) GetCountUserInTeam(teamId int) (count int, err error) {
 
 func (s *storage) CheckUserRoleById(userId int, role int) (exists bool, err error) {
 	return s.Team.CheckUserRoleById(userId, role)
+}
+
+func (s *storage) CheckUserExistInTeam(userId, teamId int) (exist bool, err error) {
+	return s.Team.CheckUserExistInTeam(userId, teamId)
 }

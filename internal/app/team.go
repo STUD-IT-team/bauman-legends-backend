@@ -300,7 +300,12 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam, se
 		return err
 	}
 
-	exist, err := s.storage.CheckUserHasTeamById(req.UserID)
+	teamId, err := strconv.Atoi(profile.TeamID)
+	if err != nil {
+		return err
+	}
+
+	exist, err := s.storage.CheckUserExistInTeam(req.UserID, teamId)
 	if err != nil {
 		return err
 	}
@@ -331,10 +336,6 @@ func (s *TeamService) DeleteMemberFromTeam(req *request.DeleteMemberFromTeam, se
 		return errors.Join(consts.ConflictError, errors.New("удаляемый участник является капитаном"))
 	}
 
-	teamId, err := strconv.Atoi(profile.TeamID)
-	if err != nil {
-		return err
-	}
 	err = s.storage.DeleteMemberFromTeam(req.UserID, teamId)
 	if err != nil {
 		return err
