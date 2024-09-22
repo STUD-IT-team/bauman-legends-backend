@@ -56,7 +56,7 @@ func (s *MediaTaskService) GetMediaTask(session request.Session) (response.GetMe
 
 	var task domain.MediaTask
 
-	if status == consts.CorrectStatus {
+	if status != consts.EmptyStatus {
 		task, err = s.storage.GetNewMediaTask(teamId)
 		if err != nil {
 			return response.GetMediaTask{}, err
@@ -93,6 +93,11 @@ func (s *MediaTaskService) UpdateAnswerOnMediaTask(req request.UpdateAnswerOnMed
 		return err
 	}
 
+	userId, err := strconv.Atoi(profile.Id)
+	if err != nil {
+		return err
+	}
+
 	teamId, err := strconv.Atoi(profile.TeamID)
 	if err != nil {
 		return err
@@ -104,7 +109,16 @@ func (s *MediaTaskService) UpdateAnswerOnMediaTask(req request.UpdateAnswerOnMed
 	}
 
 	if !exist {
-		return errors.New("invalid id")
+		return consts.NotFoundError
+	}
+
+	isCaptain, err := s.storage.CheckUserRoleById(userId, consts.CaptainRole)
+	if err != nil {
+		return err
+	}
+
+	if !isCaptain {
+		return consts.ForbiddenError
 	}
 
 	answer := *mapper.ParseUpdateAnswerOnMediaTask(req)
