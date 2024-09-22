@@ -323,6 +323,11 @@ definitions:
       status:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID:
+    properties:
+      status:
+        type: string
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UserProfile:
     properties:
       email:

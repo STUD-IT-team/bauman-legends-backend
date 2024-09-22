@@ -21,7 +21,7 @@ func NewTeamStorage(dataSource string) (storage.TeamStorage, error) {
 		return nil, err
 	}
 	db, err := pgxpool.NewWithConfig(context.Background(), config)
-	//db, err := pgx.ConnectConfig(context.Background(), config)
+  
 	// db.DB.SetMaxOpenConns(1000) // The default is 0 (unlimited)
 	// db.DB.SetMaxIdleConns(10)   // defaultMaxIdleConns = 2
 	// db.DB.SetConnMaxLifetime(0) // 0, connections are reused forever.
@@ -398,4 +398,16 @@ func (s *TeamStorage) GetCountUserInTeam(teamId int) (count int, err error) {
 	}
 
 	return count, nil
+}
+
+func (s *TeamStorage) CheckUserExistInTeam(userId, teamId int) (exist bool, err error) {
+	err = s.db.QueryRow(context.TODO(), checkUserExistInTeamQuery, userId, teamId).Scan(&exist)
+	if err != nil {
+		log.WithField(
+			"origin.function", "CheckUserExistInTeam",
+		).Errorf("Ошибка проверке принадлежания участника команде: %s", err.Error())
+		return false, err
+	}
+
+	return exist, nil
 }

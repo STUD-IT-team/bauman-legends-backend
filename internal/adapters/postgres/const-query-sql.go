@@ -7,6 +7,7 @@ const (
 	createTeamQuery              = `INSERT INTO team (name) VALUES ($1) RETURNING id`
 	setRoleByUserIdQuery         = `UPDATE "user" SET role_id = $1 WHERE id = $2`
 	checkUserHasTeamByIdQuery    = `SELECT EXISTS (SELECT 1 FROM "user" WHERE (id = $1) AND (team_id IS NOT NULL));`
+	checkUserExistInTeamQuery    = `SELECT EXISTS(SELECT * FROM "user" WHERE id = $1 AND team_id=$2)`
 	checkUserHasTeamByEmailQuery = `SELECT EXISTS (SELECT 1 FROM "user" WHERE (email = $1) AND (team_id IS NOT NULL));`
 	setTeamIdQuery               = `UPDATE "user" SET team_id = $1 WHERE id = $2`
 	updateTeamNameQuery          = `UPDATE team SET name = $1 WHERE id = (SELECT team_id FROM "user" WHERE id = $2)`

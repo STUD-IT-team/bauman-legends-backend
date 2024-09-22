@@ -2510,7 +2510,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "master_classes": {
                     "type": "array",
@@ -2566,6 +2566,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "telegram": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID": {
+            "type": "object",
+            "properties": {
+                "status": {
                     "type": "string"
                 }
             }
