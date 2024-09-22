@@ -155,13 +155,13 @@ func main() {
 	r.Post("/api/task/text/answer", handler.UpdateAnswerOnTextTaskById)
 
 	r.Get("/api/task/media", handler.GetMediaTask)
-	r.Put("/api/task/media/answer/{id}", handler.UpdateAnswerOnMediaTaskById)
+	r.Post("/api/task/media/answer/{id}", handler.UpdateAnswerOnMediaTaskById)
 	r.Get("/api/task/media/answer", handler.GetAllMediaTaskByTeam)
 	r.Get("/api/task/media/answer/{id}", handler.GetMediaTaskByTeamById)
 
 	r.Get("/api/admin/task/media/answer", handler.GetAnswerOnMediaByFilter)
 	r.Get("/api/admin/task/media/answer/{id}", handler.GetAnswerOnMediaTaskById)
-	r.Put("/api/admin/task/media/answer/{id}", handler.UpdateStatusAnswerOnMediaTask)
+	r.Post("/api/admin/task/media/answer", handler.UpdateStatusAnswerOnMediaTask)
 
 	r.Get("/api/sec", handler.GetAllMasterClass)
 	r.Get("/api/sec/{id}", handler.GetMasterClassById)
@@ -181,7 +181,7 @@ func main() {
 	)
 
 	s := &http.Server{
-		Addr:           ":3010",
+		Addr:           ":3000",
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

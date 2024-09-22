@@ -1121,7 +1121,7 @@ func (h *HTTPHandler) GivesPointsTeam(w http.ResponseWriter, r *http.Request) {
 // GetTextTask
 // @Summary		 CreateAnswerOnTextTask
 // @Description
-// @Tags		 task
+// @Tags		 text
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
@@ -1182,7 +1182,7 @@ func (h *HTTPHandler) GetTextTask(w http.ResponseWriter, r *http.Request) {
 // UpdateAnswerOnTextTaskById
 // @Summary		 UpdateAnswerOnTextTaskById
 // @Description
-// @Tags		 task
+// @Tags		 text
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
@@ -1270,7 +1270,7 @@ func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.
 // GetMediaTask
 // @Summary		 Get media task
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
@@ -1278,9 +1278,8 @@ func (h *HTTPHandler) UpdateAnswerOnTextTaskById(w http.ResponseWriter, r *http.
 // @Success      200  {object}     response.GetMediaTask
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /task/media [post]
+// @Router       /task/media [get]
 func (h *HTTPHandler) GetMediaTask(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1322,7 +1321,7 @@ func (h *HTTPHandler) GetMediaTask(w http.ResponseWriter, r *http.Request) {
 // GetAnswerOnMediaByFilter
 // @Summary		 Get Answer On Media By Filter
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
@@ -1333,7 +1332,7 @@ func (h *HTTPHandler) GetMediaTask(w http.ResponseWriter, r *http.Request) {
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /api/admin/task/media/answer [get]
+// @Router       /admin/task/media/answer [get]
 func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1373,7 +1372,7 @@ func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Re
 // GetAnswerOnMediaTaskById
 // @Summary		 Get Answer On Media Task By MasterClassId
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
@@ -1384,7 +1383,7 @@ func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Re
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /api/admin/task/media/answer/{id} [get]
+// @Router       /admin/task/media/answer/{id} [get]
 func (h *HTTPHandler) GetAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1431,18 +1430,19 @@ func (h *HTTPHandler) GetAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Re
 // UpdateAnswerOnMediaTaskById
 // @Summary		 Update Answer On Media Task By MasterClassId
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Param        id path string true "answer ID"
+// @Param        request.UpdateAnswerOnMediaTask	body		request.UpdateAnswerOnMediaTask	true	"Add answer on media task"
 // @Success      200  {string}  string    "ok"
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
+// @Failure      404  {string}  string    "not  found"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /task/media/answer/{id} [put]
+// @Router       /task/media/answer [post]
 func (h *HTTPHandler) UpdateAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1468,16 +1468,23 @@ func (h *HTTPHandler) UpdateAnswerOnMediaTaskById(w http.ResponseWriter, r *http
 		return
 	}
 
-	req.ID, err = strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
+	err = h.MediaTask.UpdateAnswerOnMediaTask(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnMediaTaskById",
-		).Errorf("Ошибка чтения id: %s", err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		).Errorf("У пользователя нет прав: %s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
 		return
 	}
 
-	err = h.MediaTask.UpdateAnswerOnMediaTask(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "UpdateAnswerOnMediaTaskById",
+		).Errorf("Таска не найдена: %s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnMediaTaskById",
@@ -1492,18 +1499,19 @@ func (h *HTTPHandler) UpdateAnswerOnMediaTaskById(w http.ResponseWriter, r *http
 // UpdateStatusAnswerOnMediaTask
 // @Summary		 Update Status Answer On Media Task
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
 // @Param        id path string true "answer ID"
+// @Param        request.UpdatePointsOnAnswerOnMediaTask	body		request.UpdatePointsOnAnswerOnMediaTask	true	"Check answer on media task"
 // @Success      200  {string}  string    "ok"
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /api/admin/task/media/answer/{id} [put]
+// @Router       /admin/task/media/answer/{id} [post]
 func (h *HTTPHandler) UpdateStatusAnswerOnMediaTask(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1553,17 +1561,16 @@ func (h *HTTPHandler) UpdateStatusAnswerOnMediaTask(w http.ResponseWriter, r *ht
 // GetAllMediaTaskByTeam
 // @Summary		 Get All Media Task By Team
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Success      200  {string}  string    "ok"
+// @Success      200  {object}   response.GetAllAnswerByTeam
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /api/task/media/answer [get]
+// @Router       /task/media/answer [get]
 func (h *HTTPHandler) GetAllMediaTaskByTeam(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
@@ -1600,18 +1607,17 @@ func (h *HTTPHandler) GetAllMediaTaskByTeam(w http.ResponseWriter, r *http.Reque
 // GetMediaTaskByTeamById
 // @Summary		 Get Media Task By Team By MasterClassId
 // @Description
-// @Tags		 task
+// @Tags		 media
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
 // @Param        id path string true "answer ID"
-// @Success      200  {string}  string    "ok"
+// @Success      200  {object}   response.GetAnswerByTeamByID
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /api/task/media/answer/{id} [get]
+// @Router       /task/media/answer/{id} [get]
 func (h *HTTPHandler) GetMediaTaskByTeamById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
