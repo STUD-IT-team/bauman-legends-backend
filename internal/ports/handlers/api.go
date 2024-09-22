@@ -25,15 +25,17 @@ type HTTPHandler struct {
 	TextTask  *app.TextTaskService
 	MediaTask *app.MediaTaskService
 	Users     *app.UserService
+	Secs      *app.SECService
 }
 
-func NewHTTPHandler(api *app.Api, teams *app.TeamService, textTask *app.TextTaskService, mediaTask *app.MediaTaskService, user *app.UserService) *HTTPHandler {
+func NewHTTPHandler(api *app.Api, teams *app.TeamService, textTask *app.TextTaskService, mediaTask *app.MediaTaskService, user *app.UserService, sec *app.SECService) *HTTPHandler {
 	return &HTTPHandler{
 		Api:       api,
 		Teams:     teams,
 		TextTask:  textTask,
 		MediaTask: mediaTask,
 		Users:     user,
+		Secs:      sec,
 	}
 }
 
@@ -1369,7 +1371,7 @@ func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Re
 }
 
 // GetAnswerOnMediaTaskById
-// @Summary		 Get Answer On Media Task By Id
+// @Summary		 Get Answer On Media Task By MasterClassId
 // @Description
 // @Tags		 task
 // @Accept       json
@@ -1427,7 +1429,7 @@ func (h *HTTPHandler) GetAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Re
 }
 
 // UpdateAnswerOnMediaTaskById
-// @Summary		 Update Answer On Media Task By Id
+// @Summary		 Update Answer On Media Task By MasterClassId
 // @Description
 // @Tags		 task
 // @Accept       json
@@ -1596,7 +1598,7 @@ func (h *HTTPHandler) GetAllMediaTaskByTeam(w http.ResponseWriter, r *http.Reque
 }
 
 // GetMediaTaskByTeamById
-// @Summary		 Get Media Task By Team By Id
+// @Summary		 Get Media Task By Team By MasterClassId
 // @Description
 // @Tags		 task
 // @Accept       json
@@ -1655,19 +1657,61 @@ func (h *HTTPHandler) GetMediaTaskByTeamById(w http.ResponseWriter, r *http.Requ
 
 // GetAllMasterClass
 // @Summary		 GetAllMasterClass
-// @Description
+// @Description  возвращает все мастеркласы, которые еще не начались
 // @Tags		 sec
 // @Accept       json
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
-// @Success      200  {string}  string    "ok"
+// @Success      200  object     response.GetSecByFilter
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
-// @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /sec [get]
-func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) {}
+func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetSecByFilter()
+	if filter.Bind(r) != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetSECByFilter(*filter, request.Session{Value: cookie.Value})
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetAllMediaTaskByTeam",
+		).Errorf("ошибка : %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 // GetMasterClassById
 // @Summary		 GetMasterClassById
@@ -1677,14 +1721,249 @@ func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) 
 // @Produce      json
 // @Security 	 ApiKeyAuth
 // @Param 		 Authorization header string true "Authorization"
+// @Param        id path string true "sec ID"
+// @Success      200   object    response.GetSecById
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec/{id} [get]
+func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetSecByIdFilter()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetSECById(*filter, request.Session{Value: cookie.Value})
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetAllMediaTaskByTeam",
+		).Errorf("ошибка : %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// GetMasterClassByTeam
+// @Summary		 GetMasterClassByTeam
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200   object    response.GetSecByTeamId
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /sec/my [get]
+func (h *HTTPHandler) GetMasterClassByTeam(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetSecByTeamId()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetSECByTeamId(*filter, request.Session{Value: cookie.Value})
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetAllMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetAllMediaTaskByTeam",
+		).Errorf("ошибка : %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// GetMasterClassAdminById
+// @Summary		 GetMasterClassAdminById
+// @Description  возвращает все мастеркласы, которые еще не начались
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
 // @Param        id path string true "master class ID"
-// @Success      200  {string}  string    "ok"
+// @Success      200  object     response.GetSecAdminById
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /sec/ [get]
-func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request) {}
+// @Router       /admin/sec/{id} [get]
+func (h *HTTPHandler) GetMasterClassAdminById(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetSecAdminByIdFilter()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetSECAdminById(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
+		return
+	}
+
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf("ошибка : %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// GetAllAdminMasterClass
+// @Summary		 GetAllAdminMasterClass
+// @Description
+// @Tags		 sec
+// @Accept       json
+// @Produce      json
+// @Security 	 ApiKeyAuth
+// @Param 		 Authorization header string true "Authorization"
+// @Success      200   object    response.GetSecById
+// @Failure		 400  {string}  string    "bad request"
+// @Failure      401  {string}  string    "not authorized"
+// @Failure      403  {string}  string    "not rights"
+// @Failure      500  {string}  string    "internal server error"
+// @Router       /admin/sec [get]
+func (h *HTTPHandler) GetAllAdminMasterClass(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetAllAdminMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetSecAdminByFilter()
+	if filter.Bind(r) != nil {
+		log.WithField(
+			"origin.function", "GetAllAdminMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetSECAdminByFilter(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetMasterClassAdminById",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
+		return
+	}
+
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetAllAdminMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetAllAdminMasterClass",
+		).Errorf("ошибка : %s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
 
 // CreateRegisterOnMasterClass
 // @Summary		 CreateRegisterOnMasterClass
@@ -1699,12 +1978,82 @@ func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request)
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
+// @Failure      404  {string}  string    "not found"
+// @Failure      409  {string}  string    "conflict"
+// @Failure      423  {string}  string    "locked"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /sec [post]
-func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {}
+// @Router       /sec/master_class/{id} [post]
+func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
 
-// UpdateRegisterOnMasterClass
-// @Summary		 UpdateRegisterOnMasterClass
+	filter := request.NewCreateRegisterOnSecFilter()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Secs.CreateRegisterOnSEC(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ConflictError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "conflict", http.StatusConflict)
+		return
+	}
+
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	if errors.Is(err, consts.LockedError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "forbidden", http.StatusLocked)
+		return
+	}
+
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// DeleteRegisterOnMasterClass
+// @Summary		 DeleteRegisterOnMasterClass
 // @Description
 // @Tags		 sec
 // @Accept       json
@@ -1716,6 +2065,66 @@ func (h *HTTPHandler) CreateRegisterOnMasterClass(w http.ResponseWriter, r *http
 // @Failure		 400  {string}  string    "bad request"
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      403  {string}  string    "not rights"
+// @Failure      404  {string}  string    "not found"
 // @Failure      500  {string}  string    "internal server error"
-// @Router       /sec [put]
-func (h *HTTPHandler) UpdateRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {}
+// @Router       /sec/master_class/{id} [delete]
+func (h *HTTPHandler) DeleteRegisterOnMasterClass(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "DeleteRegisterOnMasterClass",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewDeleteRegisterOnSecFilter()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "DeleteRegisterOnMasterClass",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Secs.DeleteRegisterOnSEC(*filter, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	if errors.Is(err, consts.NotFoundError) {
+		log.WithField(
+			"origin.function", "CreateRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "DeleteRegisterOnMasterClass",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

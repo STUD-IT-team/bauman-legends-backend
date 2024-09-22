@@ -140,6 +140,62 @@ definitions:
       video_url:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecAdminById:
+    properties:
+      description:
+        type: string
+      fio:
+        type: string
+      id:
+        type: integer
+      master_classes:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassAdminById'
+        type: array
+      name:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      telegram:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecByFilter:
+    properties:
+      secs:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.SECByFilter'
+        type: array
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById:
+    properties:
+      description:
+        type: string
+      fio:
+        type: string
+      id:
+        type: integer
+      master_classes:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassById'
+        type: array
+      name:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      telegram:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecByTeamId:
+    properties:
+      secs:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.SECByTeamId'
+        type: array
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetTeam:
     properties:
       captain:
@@ -166,6 +222,45 @@ definitions:
       title:
         type: string
     type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassAdminById:
+    properties:
+      capacity:
+        type: integer
+      ended_at:
+        type: string
+      free_place:
+        type: integer
+      id:
+        type: integer
+      started_at:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassByFilter:
+    properties:
+      capacity:
+        type: integer
+      ended_at:
+        type: string
+      free_place:
+        type: integer
+      id:
+        type: integer
+      started_at:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassById:
+    properties:
+      capacity:
+        type: integer
+      ended_at:
+        type: string
+      free_place:
+        type: integer
+      id:
+        type: integer
+      started_at:
+        type: string
+    type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.Member:
     properties:
       email:
@@ -175,6 +270,57 @@ definitions:
       id:
         type: string
       name:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.SECByFilter:
+    properties:
+      description:
+        type: string
+      fio:
+        type: string
+      id:
+        type: integer
+      master_classes:
+        items:
+          $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.MasterClassByFilter'
+        type: array
+      name:
+        type: string
+      phone:
+        type: string
+      telegram:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.SECByTeamId:
+    properties:
+      capacity:
+        type: integer
+      description:
+        type: string
+      ended_at:
+        type: string
+      fio:
+        type: string
+      free_place:
+        type: integer
+      id:
+        type: integer
+      master_class_id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      started_at:
+        type: string
+      telegram:
+        type: string
+    type: object
+  github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID:
+    properties:
+      status:
         type: string
     type: object
   github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.UpdateAnswerOnTextTaskByID:
@@ -210,6 +356,88 @@ info:
   title: Backend Bauman Legends
   version: "1.0"
 paths:
+  /admin/sec:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetAllAdminMasterClass
+      tags:
+      - sec
+  /admin/sec/{id}:
+    get:
+      consumes:
+      - application/json
+      description: возвращает все мастеркласы, которые еще не начались
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: master class ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecAdminById'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "403":
+          description: not rights
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetMasterClassAdminById
+      tags:
+      - sec
   /admin/team:
     get:
       consumes:
@@ -553,7 +781,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: Get Answer On Media Task By Id
+      summary: Get Answer On Media Task By MasterClassId
       tags:
       - task
     put:
@@ -676,10 +904,45 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: Get Media Task By Team By Id
+      summary: Get Media Task By Team By MasterClassId
       tags:
       - task
   /sec:
+    get:
+      consumes:
+      - application/json
+      description: возвращает все мастеркласы, которые еще не начались
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecByFilter'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetAllMasterClass
+      tags:
+      - sec
+  /sec/{id}:
     get:
       consumes:
       - application/json
@@ -687,6 +950,50 @@ paths:
       - description: Authorization
         in: header
         name: Authorization
+        required: true
+        type: string
+      - description: sec ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecById'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: not authorized
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: GetMasterClassById
+      tags:
+      - sec
+  /sec/master_class/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: master class ID
+        in: path
+        name: id
         required: true
         type: string
       produces:
@@ -708,13 +1015,17 @@ paths:
           description: not rights
           schema:
             type: string
+        "404":
+          description: not found
+          schema:
+            type: string
         "500":
           description: internal server error
           schema:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: GetAllMasterClass
+      summary: DeleteRegisterOnMasterClass
       tags:
       - sec
     post:
@@ -750,6 +1061,18 @@ paths:
           description: not rights
           schema:
             type: string
+        "404":
+          description: not found
+          schema:
+            type: string
+        "409":
+          description: conflict
+          schema:
+            type: string
+        "423":
+          description: locked
+          schema:
+            type: string
         "500":
           description: internal server error
           schema:
@@ -759,49 +1082,7 @@ paths:
       summary: CreateRegisterOnMasterClass
       tags:
       - sec
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: Authorization
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: master class ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: bad request
-          schema:
-            type: string
-        "401":
-          description: not authorized
-          schema:
-            type: string
-        "403":
-          description: not rights
-          schema:
-            type: string
-        "500":
-          description: internal server error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: UpdateRegisterOnMasterClass
-      tags:
-      - sec
-  /sec/:
+  /sec/my:
     get:
       consumes:
       - application/json
@@ -811,18 +1092,13 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: master class ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/github_com_STUD-IT-team_bauman-legends-backend_internal_domain_response.GetSecByTeamId'
         "400":
           description: bad request
           schema:
@@ -831,17 +1107,13 @@ paths:
           description: not authorized
           schema:
             type: string
-        "403":
-          description: not rights
-          schema:
-            type: string
         "500":
           description: internal server error
           schema:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: GetMasterClassById
+      summary: GetMasterClassByTeam
       tags:
       - sec
   /task/media:
@@ -922,7 +1194,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: Update Answer On Media Task By Id
+      summary: Update Answer On Media Task By MasterClassId
       tags:
       - task
   /task/text:

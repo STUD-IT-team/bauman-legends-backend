@@ -1,11 +1,13 @@
 package mapper
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/request"
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/domain/response"
 	grpc2 "github.com/STUD-IT-team/bauman-legends-backend/internal/ports/grpc"
-	"strconv"
 )
 
 // MakeRequestRegister
@@ -300,5 +302,188 @@ func MakeGetUserById(d domain.Member) *response.GetUserById {
 		PhoneNumber: d.PhoneNumber,
 		Team:        d.TeamName,
 		Role:        d.Role,
+	}
+}
+
+func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
+	secs := make([]response.SECByFilter, 0)
+	var sec response.SECByFilter
+	masterClasses := make([]response.MasterClassByFilter, 0)
+	for _, d := range dom {
+		if sec.Id == d.Id {
+			masterClasses = append(masterClasses,
+				response.MasterClassByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
+		} else {
+			sec.MasterClasses = masterClasses
+			secs = append(secs, sec)
+
+			masterClasses = make([]response.MasterClassByFilter, 0)
+
+			masterClasses = append(masterClasses,
+				response.MasterClassByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
+
+			sec = response.SECByFilter{
+				Id:          d.Id,
+				Name:        d.Name,
+				Description: d.Description,
+				FIO:         d.FIO,
+				Phone:       d.Phone,
+				Telegram:    d.Telegram,
+			}
+
+		}
+
+	}
+
+	return &response.GetSecByFilter{
+		SECs: secs[1:],
+	}
+}
+
+func MakeGetSECById(dom []domain.Sec) *response.GetSecById {
+	if len(dom) == 0 {
+		return &response.GetSecById{}
+	}
+	var sec response.GetSecById
+	masterClasses := make([]response.MasterClassById, 0)
+
+	for _, d := range dom {
+		masterClasses = append(masterClasses,
+			response.MasterClassById{
+				Id:        d.MasterClassId,
+				StartedAt: d.StartedAt.Format(time.TimeOnly),
+				EndedAt:   d.EndedAt.Format(time.TimeOnly),
+				Capacity:  d.Capacity,
+				FreePlace: d.Capacity - d.Busy,
+			})
+	}
+
+	sec = response.GetSecById{
+		Id:            dom[0].Id,
+		Name:          dom[0].Name,
+		Description:   dom[0].Description,
+		FIO:           dom[0].FIO,
+		Phone:         dom[0].Phone,
+		Telegram:      dom[0].Telegram,
+		PhotoUrl:      dom[0].PhotoUrl,
+		MasterClasses: masterClasses,
+	}
+
+	return &sec
+}
+
+func MakeGetSECByTeamId(dom []domain.Sec) *response.GetSecByTeamId {
+	secs := make([]response.SECByTeamId, 0)
+	for _, d := range dom {
+		sec := response.SECByTeamId{
+			Id:            d.Id,
+			Name:          d.Name,
+			Description:   d.Description,
+			FIO:           d.FIO,
+			Phone:         d.Phone,
+			Telegram:      d.Telegram,
+			PhotoUrl:      d.PhotoUrl,
+			MasterClassId: d.MasterClassId,
+			StartedAt:     d.StartedAt.Format(time.TimeOnly),
+			EndedAt:       d.EndedAt.Format(time.TimeOnly),
+			Capacity:      d.Capacity,
+			FreePlace:     d.Capacity - d.Busy,
+		}
+		secs = append(secs, sec)
+	}
+
+	return &response.GetSecByTeamId{
+		Secs: secs,
+	}
+}
+
+func MakeGetSECAdminById(dom []domain.Sec) *response.GetSecAdminById {
+	if len(dom) == 0 {
+		return &response.GetSecAdminById{}
+	}
+	var sec response.GetSecAdminById
+	masterClasses := make([]response.MasterClassAdminById, 0)
+
+	for _, d := range dom {
+		masterClasses = append(masterClasses,
+			response.MasterClassAdminById{
+				Id:        d.MasterClassId,
+				StartedAt: d.StartedAt.Format(time.TimeOnly),
+				EndedAt:   d.EndedAt.Format(time.TimeOnly),
+				Capacity:  d.Capacity,
+				FreePlace: d.Capacity - d.Busy,
+			})
+	}
+
+	sec = response.GetSecAdminById{
+		Id:            dom[0].Id,
+		Name:          dom[0].Name,
+		Description:   dom[0].Description,
+		FIO:           dom[0].FIO,
+		Phone:         dom[0].Phone,
+		Telegram:      dom[0].Telegram,
+		PhotoUrl:      dom[0].PhotoUrl,
+		MasterClasses: masterClasses,
+	}
+
+	return &sec
+}
+
+func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
+	secs := make([]response.SECAdminByFilter, 0)
+	var sec response.SECAdminByFilter
+	masterClasses := make([]response.MasterClassAdminByFilter, 0)
+	for _, d := range dom {
+		if sec.Id == d.Id {
+			masterClasses = append(masterClasses,
+				response.MasterClassAdminByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
+		} else {
+			sec.MasterClasses = masterClasses
+			secs = append(secs, sec)
+
+			masterClasses = make([]response.MasterClassAdminByFilter, 0)
+
+			masterClasses = append(masterClasses,
+				response.MasterClassAdminByFilter{
+					Id:        d.MasterClassId,
+					StartedAt: d.StartedAt.Format(time.TimeOnly),
+					EndedAt:   d.EndedAt.Format(time.TimeOnly),
+					Capacity:  d.Capacity,
+					FreePlace: d.Capacity - d.Busy,
+				})
+
+			sec = response.SECAdminByFilter{
+				Id:          d.Id,
+				Name:        d.Name,
+				Description: d.Description,
+				FIO:         d.FIO,
+				Phone:       d.Phone,
+				Telegram:    d.Telegram,
+			}
+
+		}
+
+	}
+
+	return &response.GetSecAdminByFilter{
+		SECs: secs[1:],
 	}
 }

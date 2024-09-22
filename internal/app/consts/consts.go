@@ -58,4 +58,7 @@ const (
 	MinioUrl          = "http://localhost:9000/"
 	VideoTaskBucket   = "video-task"
 	PhotoAnswerBucket = "photo-answer"
+	SECBucket         = "sec"
 )
+
+const SecDay = "2024-09-24 "
