@@ -315,8 +315,8 @@ func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
 			masterClasses = append(masterClasses,
 				response.MasterClassByFilter{
 					Id:        d.MasterClassId,
-					StartedAt: d.StartedAt.Format(time.RFC3339),
-					EndedAt:   d.EndedAt.Format(time.RFC3339),
+					StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+					EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 					Capacity:  d.Capacity,
 					FreePlace: d.Capacity - d.Busy,
 				})
@@ -329,8 +329,8 @@ func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
 			masterClasses = append(masterClasses,
 				response.MasterClassByFilter{
 					Id:        d.MasterClassId,
-					StartedAt: d.StartedAt.Format(time.RFC3339),
-					EndedAt:   d.EndedAt.Format(time.RFC3339),
+					StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+					EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 					Capacity:  d.Capacity,
 					FreePlace: d.Capacity - d.Busy,
 				})
@@ -364,8 +364,8 @@ func MakeGetSECById(dom []domain.Sec) *response.GetSecById {
 		masterClasses = append(masterClasses,
 			response.MasterClassById{
 				Id:        d.MasterClassId,
-				StartedAt: d.StartedAt.Format(time.RFC3339),
-				EndedAt:   d.EndedAt.Format(time.RFC3339),
+				StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+				EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 				Capacity:  d.Capacity,
 				FreePlace: d.Capacity - d.Busy,
 			})
@@ -397,8 +397,8 @@ func MakeGetSECByTeamId(dom []domain.Sec) *response.GetSecByTeamId {
 			Telegram:      d.Telegram,
 			PhotoUrl:      d.PhotoUrl,
 			MasterClassId: d.MasterClassId,
-			StartedAt:     d.StartedAt.Format(time.RFC3339),
-			EndedAt:       d.EndedAt.Format(time.RFC3339),
+			StartedAt:     d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+			EndedAt:       d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 			Capacity:      d.Capacity,
 			FreePlace:     d.Capacity - d.Busy,
 		}
@@ -421,8 +421,8 @@ func MakeGetSECAdminById(dom []domain.Sec) *response.GetSecAdminById {
 		masterClasses = append(masterClasses,
 			response.MasterClassAdminById{
 				Id:        d.MasterClassId,
-				StartedAt: d.StartedAt.Format(time.RFC3339),
-				EndedAt:   d.EndedAt.Format(time.RFC3339),
+				StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+				EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 				Capacity:  d.Capacity,
 				FreePlace: d.Capacity - d.Busy,
 			})
@@ -451,8 +451,8 @@ func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
 			masterClasses = append(masterClasses,
 				response.MasterClassAdminByFilter{
 					Id:        d.MasterClassId,
-					StartedAt: d.StartedAt.Format(time.RFC3339),
-					EndedAt:   d.EndedAt.Format(time.RFC3339),
+					StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+					EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 					Capacity:  d.Capacity,
 					FreePlace: d.Capacity - d.Busy,
 				})
@@ -465,8 +465,8 @@ func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
 			masterClasses = append(masterClasses,
 				response.MasterClassAdminByFilter{
 					Id:        d.MasterClassId,
-					StartedAt: d.StartedAt.Format(time.RFC3339),
-					EndedAt:   d.EndedAt.Format(time.RFC3339),
+					StartedAt: d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+					EndedAt:   d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 					Capacity:  d.Capacity,
 					FreePlace: d.Capacity - d.Busy,
 				})
@@ -499,8 +499,8 @@ func MakeGetMasterClassById(d domain.Sec) *response.GetMasterClassByID {
 		Telegram:      d.Telegram,
 		PhotoUrl:      d.PhotoUrl,
 		MasterClassId: d.MasterClassId,
-		StartedAt:     d.StartedAt.Format(time.RFC3339),
-		EndedAt:       d.EndedAt.Format(time.RFC3339),
+		StartedAt:     d.StartedAt.Add(time.Hour * -3).Format(time.RFC3339),
+		EndedAt:       d.EndedAt.Add(time.Hour * -3).Format(time.RFC3339),
 		Capacity:      d.Capacity,
 		FreePlace:     d.Capacity - d.Busy,
 	}

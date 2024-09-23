@@ -33,7 +33,6 @@ FROM sec JOIN master_class on sec.id = master_class.sec_id
          JOIN "user" ON "user".id = sec.responsible_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
         FULL JOIN SUM_USER ON team_master_class.master_class_id = SUM_USER.id
-WHERE started_at > now()
 ORDER BY  sec.id, started_at`
 
 func (s *SecStorage) GetSECByFilter() ([]domain.Sec, error) {
@@ -94,7 +93,7 @@ FROM sec JOIN master_class on sec.id = master_class.sec_id
         FULL JOIN team_master_class ON master_class.id = team_master_class.master_class_id
         FULL JOIN SUM_USER ON team_master_class.master_class_id = SUM_USER.id
         JOIN media_obj ON master_class.media_id = media_obj.id
-WHERE started_at > now() and sec.id = $1
+WHERE sec.id = $1
 ORDER BY  sec.id, started_at;`
 
 func (s *SecStorage) GetSecByID(secId int) ([]domain.Sec, error) {
