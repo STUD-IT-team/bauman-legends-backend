@@ -50,6 +50,7 @@ services:
       timeout: 20s
       retries: 3
 
+
   minio-migrate:
     container_name: migrate_minio
     depends_on:
@@ -60,7 +61,8 @@ services:
     env_file:
       - minio.env
     networks:
-      - minio
+      - internal-back
+
 
   api:
     container_name: "${API_DN}"
