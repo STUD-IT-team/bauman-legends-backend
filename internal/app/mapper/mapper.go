@@ -348,6 +348,9 @@ func MakeGetSECByFilter(dom []domain.Sec) *response.GetSecByFilter {
 
 	}
 
+	sec.MasterClasses = masterClasses
+	secs = append(secs, sec)
+
 	return &response.GetSecByFilter{
 		SECs: secs[1:],
 	}
@@ -483,6 +486,9 @@ func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
 		}
 
 	}
+
+	sec.MasterClasses = masterClasses
+	secs = append(secs, sec)
 
 	return &response.GetSecAdminByFilter{
 		SECs: secs[1:],
