@@ -76,7 +76,7 @@ func (s *MediaTaskService) GetMediaTask(session request.Session) (response.GetMe
 		}
 	}
 
-	task.VideoUrl = consts.MinioUrl + consts.VideoTaskBucket + "/" + task.VideoKey
+	task.VideoUrl = "/" + consts.VideoTaskBucket + "/" + task.VideoKey
 
 	return *mapper.MakeGetMediaTaskResponse(task), nil
 }

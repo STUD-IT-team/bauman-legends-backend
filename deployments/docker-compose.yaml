@@ -36,6 +36,7 @@ services:
       - "9001:9001"
     networks:
       - internal-back
+      - front-back
     env_file:
       - minio.env
     healthcheck:

@@ -197,8 +197,8 @@ func ParseUpdateAnswerOnTextTask(req request.UpdateAnswerOnTextTaskByID) *domain
 func MakeGetMediaTaskResponse(t domain.MediaTask) *response.GetMediaTask {
 	return &response.GetMediaTask{
 		Id:          t.ID,
-		Title:       t.Title,
-		Description: fmt.Sprintf("<video src=\"%s\" width=\"500\" height=\"281\" controls></video>", t.VideoUrl),
+		Title:       "Фотоквест начался!",
+		Description: fmt.Sprintf("Герой видео расскажет вашей команде о самых значимых и важных местах нашего Университета. Ваша задача — понять, о чем идет речь, прийти на эту точку и сфотографироваться командой (на фото должно быть не менее 3 людей). Чем больше мест вы отгадаете, тем больше баллов будет начислено вашей команде.\n<video src=\"%s\" type=\"video/mp4\" width=\"100%%\"  controls></video>", t.VideoUrl),
 		Points:      t.Points,
 		VideoUrl:    t.VideoUrl,
 	}
