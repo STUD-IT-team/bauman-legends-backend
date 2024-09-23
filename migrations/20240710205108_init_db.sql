@@ -15,7 +15,7 @@ CREATE TABLE media_obj
 (
     id         SERIAL NOT NULL,
     uuid_media UUID   NOT NULL,
-    type       TEXT   NOT NULL    ,
+    type       TEXT   NOT NULL,
     PRIMARY KEY (id)
 );
 

@@ -11,4 +11,5 @@ type MediaAnswer struct {
 	PhotoKey    string `json:"photo_key"`
 	PhotoUrl    string `json:"photo_url"`
 	PhotoAnswer []byte `json:"photo_answer"`
+	PhotoType   string `json:"photo_type"`
 }

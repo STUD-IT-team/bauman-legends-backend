@@ -98,7 +98,7 @@ func main() {
 		)
 	}
 
-	objectStorage, err := minio.NewMinioStorage("localhost:9000", "user", "password", false)
+	objectStorage, err := minio.NewMinioStorage("minio:9000", "user", "password", false)
 	if err != nil {
 		log.WithField(
 			"origin.function", "main",
@@ -155,7 +155,7 @@ func main() {
 	r.Post("/api/task/text/answer", handler.UpdateAnswerOnTextTaskById)
 
 	r.Get("/api/task/media", handler.GetMediaTask)
-	r.Post("/api/task/media/answer/{id}", handler.UpdateAnswerOnMediaTaskById)
+	r.Post("/api/task/media/answer", handler.UpdateAnswerOnMediaTaskById)
 	r.Get("/api/task/media/answer", handler.GetAllMediaTaskByTeam)
 	r.Get("/api/task/media/answer/{id}", handler.GetMediaTaskByTeamById)
 
@@ -181,7 +181,7 @@ func main() {
 	)
 
 	s := &http.Server{
-		Addr:           ":3000",
+		Addr:           ":3010",
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

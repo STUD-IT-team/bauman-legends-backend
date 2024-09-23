@@ -2,10 +2,13 @@ package app
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/STUD-IT-team/bauman-legends-backend/internal/app/consts"
@@ -123,13 +126,21 @@ func (s *MediaTaskService) UpdateAnswerOnMediaTask(req request.UpdateAnswerOnMed
 
 	answer := *mapper.ParseUpdateAnswerOnMediaTask(req)
 	answer.TeamId = teamId
+	b64data := req.Answer[strings.IndexByte(req.Answer, ',')+1:]
+
+	typeImage := req.Answer[strings.IndexByte(req.Answer, '/')+1 : strings.IndexByte(req.Answer, ';')]
+	answer.PhotoType = typeImage
+	b64d, err := base64.StdEncoding.DecodeString(b64data)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
 
 	photo := domain.Object{
 		BucketName: consts.PhotoAnswerBucket,
 		ObjectName: uuid.New().String(),
-		TypeData:   req.TypeData,
-		Size:       int64(len(req.Answer)),
-		Data:       req.Answer,
+		TypeData:   typeImage,
+		Size:       int64(len(b64d)),
+		Data:       b64d,
 	}
 
 	answer.PhotoKey, err = s.storage.PutObject(photo)

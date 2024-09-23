@@ -16,9 +16,9 @@
 
 # Dependency directories (remove the comment below to include it)
 .DS_Store
-/db-data
+db-data
 *.env
-
+data
 # Go workspace file
 go.work
 

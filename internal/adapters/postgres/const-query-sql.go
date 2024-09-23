@@ -51,7 +51,7 @@ const (
 	getLastMediaTask        = `SELECT point_task.id, title, description, media_id, uuid_media, points FROM point_task JOIN public.media_obj mo ON point_task.media_id = mo.id WHERE public.point_task.id = (SELECT point_task_id FROM team_media_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1)`
 	getStatusLastMediaTask  = `SELECT status FROM team_media_answer WHERE team_id = $1 ORDER BY date DESC LIMIT 1`
 	createAnswerOnMediaTask = `INSERT INTO team_media_answer (team_id, point_task_id, status, date) VALUES ($1, $2, $3, NOW())`
-	updateAnswerOnMediaTask = `UPDATE team_media_answer SET media_id = $1, status = $2, date = NOW() WHERE id = $3`
+	updateAnswerOnMediaTask = `UPDATE team_media_answer SET media_id = $1, status = $2, date = NOW() WHERE team_id = $3 and point_task_id = $4`
 	getAllMediaTask         = `SELECT tma.id,
        									pt.title, 
        									pt.description, 
@@ -97,7 +97,7 @@ const (
 	setPointsOnMediaTask    = `UPDATE team_media_answer SET points = $1, status = $2, comment = $3 WHERE id = $4`
 	getPointsOnMediaTask    = `SELECT point_task.points FROM team_media_answer JOIN point_task ON team_media_answer.point_task_id = point_task.id WHERE team_media_answer.id = $1`
 	getUpdateTimeMediaTask  = `SELECT date FROM team_media_answer WHERE id = $1`
-	checkAnswerIsExistQuery = `SELECT EXISTS (SELECT id FROM team_media_answer WHERE team_id = $1 AND id = $2)`
+	checkAnswerIsExistQuery = `SELECT EXISTS (SELECT id FROM team_media_answer WHERE team_id = $1 AND point_task_id = $2)`
 	getAllMediaTaskByTeam   = `SELECT 
        								point_task.id, 
        								point_task.title, 

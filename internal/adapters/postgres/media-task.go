@@ -95,7 +95,7 @@ func (s *MediaTaskStorage) UpdateAnswerOnMediaTask(taskId int, task domain.Media
 
 	defer tx.Rollback(context.TODO())
 
-	err = tx.QueryRow(context.TODO(), createMediaObjectQuery, task.PhotoKey, "photo-answer").Scan(&task.PhotoId)
+	err = tx.QueryRow(context.TODO(), createMediaObjectQuery, task.PhotoKey, task.PhotoType).Scan(&task.PhotoId)
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnMediaTask",
@@ -106,6 +106,7 @@ func (s *MediaTaskStorage) UpdateAnswerOnMediaTask(taskId int, task domain.Media
 	_, err = tx.Exec(context.TODO(), updateAnswerOnMediaTask,
 		task.PhotoId,
 		consts.ReviewStatus,
+		task.TeamId,
 		taskId,
 	)
 	if err != nil {
