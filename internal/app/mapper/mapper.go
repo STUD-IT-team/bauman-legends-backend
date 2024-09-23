@@ -488,3 +488,20 @@ func MakeGetSECAdminByFilter(dom []domain.Sec) *response.GetSecAdminByFilter {
 		SECs: secs[1:],
 	}
 }
+
+func MakeGetMasterClassById(d domain.Sec) *response.GetMasterClassByID {
+	return &response.GetMasterClassByID{
+		Id:            d.Id,
+		Name:          d.Name,
+		Description:   d.Description,
+		FIO:           d.FIO,
+		Phone:         d.Phone,
+		Telegram:      d.Telegram,
+		PhotoUrl:      d.PhotoUrl,
+		MasterClassId: d.MasterClassId,
+		StartedAt:     d.StartedAt.Format(time.RFC3339),
+		EndedAt:       d.EndedAt.Format(time.RFC3339),
+		Capacity:      d.Capacity,
+		FreePlace:     d.Capacity - d.Busy,
+	}
+}

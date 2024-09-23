@@ -1719,8 +1719,8 @@ func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-// GetMasterClassById
-// @Summary		 GetMasterClassById
+// GetSecById
+// @Summary		 GetSecById
 // @Description
 // @Tags		 sec
 // @Accept       json
@@ -1733,7 +1733,7 @@ func (h *HTTPHandler) GetAllMasterClass(w http.ResponseWriter, r *http.Request) 
 // @Failure      401  {string}  string    "not authorized"
 // @Failure      500  {string}  string    "internal server error"
 // @Router       /sec/{id} [get]
-func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPHandler) GetSecById(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access-token")
 	if err != nil {
 		log.WithField(
@@ -2128,6 +2128,51 @@ func (h *HTTPHandler) DeleteRegisterOnMasterClass(w http.ResponseWriter, r *http
 		log.WithField(
 			"origin.function", "DeleteRegisterOnMasterClass",
 		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *HTTPHandler) GetMasterClassById(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access-token")
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassById",
+		).Errorf(
+			"Cookie 'access-token' не найден: %s",
+			err.Error(),
+		)
+		http.Error(w, "not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	filter := request.NewGetMasterClassByID()
+	if err = filter.Bind(r); err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassById",
+		).Errorf(
+			"ошибка запроса %s", err.Error(),
+		)
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.Secs.GetMasterClassById(*filter, request.Session{Value: cookie.Value})
+	if err != nil {
+
+		log.WithField(
+			"origin.function", "GetMasterClassById",
+		).Errorf("%s", err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(res); err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassById",
+		).Errorf("ошибка : %s", err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}

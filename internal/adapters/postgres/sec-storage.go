@@ -364,9 +364,10 @@ func (s *SecStorage) GetSECAdminById(secId int) ([]domain.Sec, error) {
 	return secs, nil
 }
 
-const checkRegisterOnSecQuery = `SELECT EXISTS (SELECT * FROM team_master_class 
-    JOIN master_class ON team_master_class.master_class_id = master_class.id
-                        WHERE sec_id = $1 AND team_id = $2)`
+const checkRegisterOnSecQuery = `
+SELECT EXISTS (SELECT * FROM team_master_class
+                                 JOIN master_class ON team_master_class.master_class_id = master_class.id
+               WHERE sec_id = (SELECT sec_id FROM master_class WHERE master_class.id = $1) AND team_id = $2);`
 
 func (s *SecStorage) CheckRegisterOnSec(secId, teamId int) (bool, error) {
 	var exist bool
@@ -438,7 +439,7 @@ func (s *SecStorage) CheckMasterClassBusyPlaceById(masterClassId, teamId int) (i
 	return count, nil
 }
 
-const checkMasterClassTimeQuery = `SELECT started_at > NOW() FROM master_class WHERE id = $1`
+const checkMasterClassTimeQuery = `SELECT started_at < NOW() FROM master_class WHERE id = $1`
 
 func (s *SecStorage) CheckMasterClassTime(masterClass int) (bool, error) {
 	var exist bool
@@ -451,6 +452,48 @@ func (s *SecStorage) CheckMasterClassTime(masterClass int) (bool, error) {
 	}
 
 	return exist, nil
+}
+
+const getMasterClassByIdQuery = `WITH sum_user AS (WITH count_user AS (
+    SELECT count(*) as cnt, team_id
+    FROM "user" JOIN team ON "user".team_id = team.id
+    GROUP BY team_id
+
+)
+                  SELECT sum(CNT) as sum, master_class_id
+                  FROM team_master_class JOIN COUNT_USER on count_user.team_id = team_master_class.team_id
+                  GROUP BY master_class_id
+)
+
+SELECT sec.id, sec.name, description, "user".name, "user".telegram, "user".phone_number, started_at, ended_at, capacity, COALESCE( SUM_USER.SUM, 0)
+FROM sec JOIN master_class on sec.id = master_class.sec_id
+         JOIN "user" ON "user".id = sec.responsible_id
+         full JOIN team_master_class ON master_class.id = team_master_class.master_class_id
+         full JOIN SUM_USER ON team_master_class.master_class_id = SUM_USER.master_class_id
+WHERE master_class.id = $1;`
+
+func (s *SecStorage) GetMasterClassByID(masterClassId int) (domain.Sec, error) {
+	var sec domain.Sec
+	err := s.db.QueryRow(context.Background(), getMasterClassByIdQuery, masterClassId).Scan(
+		&sec.Id,
+		&sec.Name,
+		&sec.Description,
+		&sec.FIO,
+		&sec.Telegram,
+		&sec.Phone,
+		&sec.StartedAt,
+		&sec.EndedAt,
+		&sec.Capacity,
+		&sec.Busy,
+	)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetMasterClassByID",
+		).Errorf("ошибка чтения мк: %s", err.Error())
+		return domain.Sec{}, err
+	}
+
+	return sec, nil
 }
 
 func NewSecStorage(dataSource string) (storage.SECStorage, error) {

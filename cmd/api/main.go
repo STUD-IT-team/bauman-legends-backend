@@ -164,11 +164,12 @@ func main() {
 	r.Post("/api/admin/task/media/answer", handler.UpdateStatusAnswerOnMediaTask)
 
 	r.Get("/api/sec", handler.GetAllMasterClass)
-	r.Get("/api/sec/{id}", handler.GetMasterClassById)
+	r.Get("/api/sec/{id}", handler.GetSecById)
 	r.Get("/api/sec/my", handler.GetMasterClassByTeam)
 
 	r.Delete("/api/sec/master_class/{id}", handler.DeleteRegisterOnMasterClass)
 	r.Post("/api/sec/master_class/{id}", handler.CreateRegisterOnMasterClass)
+	r.Get("/api/sec/master_class/{id}", handler.GetMasterClassById)
 
 	r.Get("/api/admin/sec", handler.GetAllAdminMasterClass)
 	r.Get("/api/admin/sec/{id}", handler.GetMasterClassAdminById)
