@@ -16,6 +16,7 @@ type SECStorage interface {
 	CheckMasterClassIsExist(masterClassId int) (bool, error)
 	CheckMasterClassBusyPlaceById(masterClassId, teamId int) (int, error)
 	CheckMasterClassTime(masterClass int) (bool, error)
+	GetMasterClassByID(masterClassId int) (domain.Sec, error)
 }
 
 func (s *storage) GetSECByFilter() ([]domain.Sec, error) {
@@ -68,4 +69,8 @@ func (s *storage) CheckMasterClassBusyPlaceById(masterClassId, teamId int) (int,
 
 func (s *storage) CheckMasterClassTime(masterClass int) (bool, error) {
 	return s.SEC.CheckMasterClassTime(masterClass)
+}
+
+func (s *storage) GetMasterClassByID(masterClassId int) (domain.Sec, error) {
+	return s.SEC.GetMasterClassByID(masterClassId)
 }

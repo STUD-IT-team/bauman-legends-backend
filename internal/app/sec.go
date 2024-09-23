@@ -291,3 +291,21 @@ func (s *SECService) CreateRegisterOnSEC(filter request.CreateRegisterOnSecFilte
 
 	return nil
 }
+
+func (s *SECService) GetMasterClassById(filter request.GetMasterClassByID, ses request.Session) (response.GetMasterClassByID, error) {
+	res, err := s.auth.Check(context.Background(), &grpc2.CheckRequest{AccessToken: ses.Value})
+	if err != nil {
+		return response.GetMasterClassByID{}, err
+	}
+
+	if !res.Valid {
+		return response.GetMasterClassByID{}, errors.Join(consts.UnAuthorizedError, errors.New("valid check error"))
+	}
+
+	secs, err := s.storage.GetMasterClassByID(filter.MasterClassId)
+	if err != nil {
+		return response.GetMasterClassByID{}, err
+	}
+
+	return *mapper.MakeGetMasterClassById(secs), nil
+}
