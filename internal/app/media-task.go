@@ -177,7 +177,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskByFilter(req request.GetAnswerOn
 	}
 
 	if !isAdmin {
-		return response.GetAnswersOnMediaTaskByFilter{}, errors.New("user is not admin")
+		return response.GetAnswersOnMediaTaskByFilter{}, consts.ForbiddenError
 	}
 
 	var answers []domain.MediaTask
@@ -222,7 +222,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskById(req request.GetAnswerOnMedi
 	}
 
 	if !isAdmin {
-		return response.GetAnswerOnTextTaskByID{}, errors.New("user is not admin")
+		return response.GetAnswerOnTextTaskByID{}, consts.ForbiddenError
 	}
 
 	answer, err := s.storage.GetAnswerOnMediaTaskById(req.ID)
@@ -256,7 +256,7 @@ func (s *MediaTaskService) UpdatePointsOnAnswerOnMediaTask(session request.Sessi
 	}
 
 	if !isAdmin {
-		return errors.New("user is not an admin")
+		return consts.ForbiddenError
 	}
 
 	var status string
@@ -268,6 +268,7 @@ func (s *MediaTaskService) UpdatePointsOnAnswerOnMediaTask(session request.Sessi
 	if req.Answer {
 		status = consts.CorrectStatus
 		points, err = s.storage.GetPointsOnMediaTask(taskId)
+		point = float32(points)
 		if err != nil {
 			return err
 		}

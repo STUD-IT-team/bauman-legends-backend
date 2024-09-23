@@ -1350,10 +1350,18 @@ func (h *HTTPHandler) GetAnswerOnMediaByFilter(w http.ResponseWriter, r *http.Re
 	req.Status = r.URL.Query().Get("status")
 
 	res, err := h.MediaTask.GetAnswersOnMediaTaskByFilter(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetAnswerOnMediaByFilter",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
+		return
+	}
+
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetAnswerOnMediaByFilter",
-		)
+		).Errorf("%s", err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -1408,6 +1416,14 @@ func (h *HTTPHandler) GetAnswerOnMediaTaskById(w http.ResponseWriter, r *http.Re
 	}
 
 	res, err := h.MediaTask.GetAnswersOnMediaTaskById(req, request.Session{Value: cookie.Value})
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "GetAnswerOnMediaByFilter",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
+		return
+	}
+
 	if err != nil {
 		log.WithField(
 			"origin.function", "GetAnswerOnMediaTaskById",
@@ -1547,6 +1563,13 @@ func (h *HTTPHandler) UpdateStatusAnswerOnMediaTask(w http.ResponseWriter, r *ht
 	}
 
 	err = h.MediaTask.UpdatePointsOnAnswerOnMediaTask(request.Session{Value: cookie.Value}, req)
+	if errors.Is(err, consts.ForbiddenError) {
+		log.WithField(
+			"origin.function", "UpdateStatusAnswerOnMediaTask",
+		).Errorf("%s", err.Error())
+		http.Error(w, "not rights", http.StatusForbidden)
+		return
+	}
 	if err != nil {
 		log.WithField(
 			"origin.function", "UpdateAnswerOnMediaTaskById",
