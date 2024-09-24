@@ -187,7 +187,7 @@ func (s *SecStorage) GetSecByTeamId(teamId int) ([]domain.Sec, error) {
 			&sec.MasterClassId,
 			&sec.EndedAt,
 		)
-		sec.PhotoUrl = os.Getenv("MINIO_URL") + consts.SECBucket + "/" + sec.PhotoUrl
+		//sec.PhotoUrl = os.Getenv("MINIO_URL") + consts.SECBucket + "/" + sec.PhotoUrl
 		if err != nil {
 			log.WithField(
 				"origin.function", "GetSecByTeamId",
