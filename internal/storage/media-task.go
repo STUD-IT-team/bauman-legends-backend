@@ -21,6 +21,7 @@ type MediaTaskStorage interface {
 	GetUpdateTimeAnswerOnMediaTask(taskId int) (time time.Time, err error)
 	GetAllMediaTaskByTeam(teamId int) (tasks []domain.MediaTask, err error)
 	GetMediaTaskByTeamById(teamId int, answerId int) (task domain.MediaTask, err error)
+	GetDateAnswerOnMediaTaskById(answerMediaTaskId int) (timeAnswer time.Time, err error)
 }
 
 func (s *storage) GetNewMediaTask(teamId int) (task domain.MediaTask, err error) {
@@ -77,4 +78,8 @@ func (s *storage) GetAllMediaTaskByTeam(teamId int) (tasks []domain.MediaTask, e
 
 func (s *storage) GetMediaTaskByTeamById(teamId int, answerId int) (task domain.MediaTask, err error) {
 	return s.MediaTask.GetMediaTaskByTeamById(teamId, answerId)
+}
+
+func (s *storage) GetDateAnswerOnMediaTaskById(answerMediaTaskId int) (timeAnswer time.Time, err error) {
+	return s.MediaTask.GetDateAnswerOnMediaTaskById(answerMediaTaskId)
 }

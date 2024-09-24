@@ -55,7 +55,8 @@ var SecondDayMediaTaskTime = time.Date(2024, time.September, 24, 0, 0, 0, 0, tim
 var ThirdDayMediaTaskTime = time.Date(2024, time.September, 25, 0, 0, 0, 0, time.UTC)
 
 const (
-	MinioUrl          = "/"
+	MinioUrl = "/"
+	
 	VideoTaskBucket   = "video-task"
 	PhotoAnswerBucket = "photo-answer"
 	SECBucket         = "sec"
