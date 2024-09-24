@@ -177,7 +177,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskByFilter(req request.GetAnswerOn
 	}
 
 	if !isAdmin {
-		return response.GetAnswersOnMediaTaskByFilter{}, errors.New("user is not admin")
+		return response.GetAnswersOnMediaTaskByFilter{}, consts.ForbiddenError
 	}
 
 	var answers []domain.MediaTask
@@ -195,7 +195,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskByFilter(req request.GetAnswerOn
 	}
 
 	for i, _ := range answers {
-		answers[i].Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answers[i].Answer.PhotoKey
+		answers[i].Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answers[i].Answer.PhotoKey + "." + answers[i].Answer.PhotoType
 	}
 
 	return *mapper.MakeGetAnswerOnMediaTaskByFilter(answers), nil
@@ -222,7 +222,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskById(req request.GetAnswerOnMedi
 	}
 
 	if !isAdmin {
-		return response.GetAnswerOnTextTaskByID{}, errors.New("user is not admin")
+		return response.GetAnswerOnTextTaskByID{}, consts.ForbiddenError
 	}
 
 	answer, err := s.storage.GetAnswerOnMediaTaskById(req.ID)
@@ -230,7 +230,7 @@ func (s *MediaTaskService) GetAnswersOnMediaTaskById(req request.GetAnswerOnMedi
 		return response.GetAnswerOnTextTaskByID{}, err
 	}
 
-	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey
+	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey + "." + answer.Answer.PhotoType
 
 	return *mapper.MakeGetAnswerOnMediaTask(answer), nil
 }
@@ -256,31 +256,36 @@ func (s *MediaTaskService) UpdatePointsOnAnswerOnMediaTask(session request.Sessi
 	}
 
 	if !isAdmin {
-		return errors.New("user is not an admin")
+		return consts.ForbiddenError
 	}
 
 	var status string
-	taskId := req.Id
+	answerId := req.Id
 
 	points := 0
 	var point float32
 
 	if req.Answer {
 		status = consts.CorrectStatus
-		points, err = s.storage.GetPointsOnMediaTask(taskId)
+		points, err = s.storage.GetPointsOnMediaTask(answerId)
+		if err != nil {
+			return err
+		}
+		point = float32(points)
+
+		date, err := s.storage.GetDateAnswerOnMediaTaskById(answerId)
 		if err != nil {
 			return err
 		}
 
-		if consts.FirstDayMediaTaskTime.After(time.Now()) && consts.SecondDayMediaTaskTime.Before(time.Now()) {
+		if date.Format(time.DateOnly) == "2024-09-23" {
 			point *= consts.FirstDayCoefficient
 			points = int(point)
 		}
-		if consts.SecondDayMediaTaskTime.After(time.Now()) && consts.ThirdDayMediaTaskTime.Before(time.Now()) {
+		if date.Format(time.DateOnly) == "2024-09-24" {
 			point *= consts.SecondDayCoefficient
 			points = int(point)
-		}
-		if consts.ThirdDayMediaTaskTime.After(time.Now()) {
+		} else {
 			point *= consts.ThirdDayCoefficient
 			points = int(point)
 		}
@@ -289,7 +294,7 @@ func (s *MediaTaskService) UpdatePointsOnAnswerOnMediaTask(session request.Sessi
 		status = consts.WrongStatus
 	}
 
-	err = s.storage.UpdatePointsOnMediaTask(status, taskId, points, req.Comment)
+	err = s.storage.UpdatePointsOnMediaTask(status, answerId, points, req.Comment)
 	if err != nil {
 		return err
 	}
@@ -350,8 +355,8 @@ func (s *MediaTaskService) GetAnswersByTeamById(session request.Session, req req
 		return response.GetAnswerByTeamByID{}, err
 	}
 
-	answer.VideoUrl = consts.MinioUrl + consts.VideoTaskBucket + "/" + answer.VideoKey
-	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey
+	answer.VideoUrl = consts.MinioUrl + consts.VideoTaskBucket + "/" + answer.VideoKey + ".mp4"
+	answer.Answer.PhotoUrl = consts.MinioUrl + consts.PhotoAnswerBucket + "/" + answer.Answer.PhotoKey + "." + answer.Answer.PhotoType
 
 	return *mapper.MakeGetAnswersByTeamById(answer), nil
 }

@@ -146,6 +146,7 @@ func (s *MediaTaskStorage) GetAnswersOnMediaTasksByFilter(status string) (tasks 
 			&task.Points,
 			&task.Answer.Comment,
 			&task.Answer.Status,
+			&task.Answer.PhotoType,
 		)
 		if err != nil {
 			log.WithField("", "GetAnswersOnMediaTasksByFilter")
@@ -176,6 +177,7 @@ func (s *MediaTaskStorage) GetAllAnswerOnMediaTasks() (tasks []domain.MediaTask,
 			&task.Points,
 			&task.Answer.Comment,
 			&task.Answer.Status,
+			&task.Answer.PhotoType,
 		)
 		if err != nil {
 			log.WithField("", "GetAllAnswerOnMediaTasks")
@@ -238,6 +240,7 @@ func (s *MediaTaskStorage) GetAnswerOnMediaTaskById(answerMediaTaskId int) (task
 		&task.Points,
 		&task.Answer.Comment,
 		&task.Answer.Status,
+		&task.Answer.PhotoType,
 	)
 	if err != nil {
 		log.WithField(
@@ -292,6 +295,7 @@ func (s *MediaTaskStorage) GetAllMediaTaskByTeam(teamId int) (tasks []domain.Med
 			&task.Answer.Points,
 			&task.Answer.Comment,
 			&task.Answer.Status,
+			&task.Answer.PhotoType,
 		)
 		if err != nil {
 			log.WithField(
@@ -339,4 +343,16 @@ func (s *MediaTaskStorage) GetMediaTaskByTeamById(teamId int, answerId int) (tas
 	}
 
 	return task, nil
+}
+
+func (s *MediaTaskStorage) GetDateAnswerOnMediaTaskById(answerMediaTaskId int) (timeAnswer time.Time, err error) {
+	err = s.db.QueryRow(context.TODO(), getTimeAnswerOnMediaTaskById, answerMediaTaskId).Scan(&timeAnswer)
+	if err != nil {
+		log.WithField(
+			"origin.function", "GetDateAnswerOnMediaTaskById",
+		).Errorf("ошибка получения времени ответа: %s", err.Error())
+		return time.Time{}, err
+	}
+
+	return timeAnswer, nil
 }

@@ -161,7 +161,7 @@ func main() {
 
 	r.Get("/api/admin/task/media/answer", handler.GetAnswerOnMediaByFilter)
 	r.Get("/api/admin/task/media/answer/{id}", handler.GetAnswerOnMediaTaskById)
-	r.Post("/api/admin/task/media/answer", handler.UpdateStatusAnswerOnMediaTask)
+	r.Post("/api/admin/task/media/answer/{id}", handler.UpdateStatusAnswerOnMediaTask)
 
 	r.Get("/api/sec", handler.GetAllMasterClass)
 	r.Get("/api/sec/{id}", handler.GetSecById)
